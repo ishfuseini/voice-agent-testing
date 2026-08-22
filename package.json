@@ -6,7 +6,8 @@
 		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
-		"lint": "biome check"
+		"lint": "biome check",
+		"test": "vitest run"
 	},
 	"dependencies": {
 		"@base-ui/react": "^1.7.0",

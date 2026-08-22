@@ -22,10 +22,7 @@ export const useMetricsStore = create<MetricsState>()((set) => ({
 
 	recordFirstAudioLatency: (valueMs) =>
 		set((state) => ({
-			firstAudioLatencies: [
-				...state.firstAudioLatencies,
-				makeSample(valueMs),
-			],
+			firstAudioLatencies: [...state.firstAudioLatencies, makeSample(valueMs)],
 		})),
 
 	recordToolDuration: (valueMs) =>
