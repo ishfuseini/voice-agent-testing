@@ -1,29 +1,23 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { pillars } from "@/lib/criteria";
 import { CriterionState } from "@/lib/types";
-import type { AssessmentItem } from "@/lib/types";
-import { useAssessmentStore } from "@/stores/assessment";
+import { useAssessmentStore, buildInitialCriteria } from "@/stores/assessment";
+
+const totalCriteriaCount = pillars.reduce(
+	(acc, p) => acc + p.criteria.length,
+	0,
+);
 
 /**
- * Assessment store tests — state transitions, no composite score,
- * and unknown criterion rejection.
- *
- * The store is a Zustand singleton, so we reset it to initial state
- * before each test by rebuilding the criteria map from the `pillars` data
- * (the same source of truth the store uses at module load).
+ * Reset the assessment store to its initial state between tests.
+ * Uses the store's own `buildInitialCriteria` so the test never
+ * duplicates the store's initialization logic.
  */
 function resetAssessmentStore() {
-	const criteria: Record<string, AssessmentItem> = {};
-	for (const pillar of pillars) {
-		for (const criterion of pillar.criteria) {
-			criteria[criterion.key] = {
-				pillarKey: criterion.pillarKey,
-				criterionKey: criterion.key,
-				state: CriterionState.Unevaluated,
-			};
-		}
-	}
-	useAssessmentStore.setState({ criteria, completed: false });
+	useAssessmentStore.setState({
+		criteria: buildInitialCriteria(),
+		completed: false,
+	});
 }
 
 describe("assessment store", () => {
@@ -35,7 +29,7 @@ describe("assessment store", () => {
 		it("initializes all criteria as Unevaluated", () => {
 			const { criteria } = useAssessmentStore.getState();
 			const all = Object.values(criteria);
-			expect(all).toHaveLength(9);
+			expect(all).toHaveLength(totalCriteriaCount);
 			for (const item of all) {
 				expect(item.state).toBe(CriterionState.Unevaluated);
 			}
@@ -169,7 +163,7 @@ describe("assessment store", () => {
 			const counts = useAssessmentStore.getState().getAssessmentState();
 
 			expect(counts.evaluated).toBe(0);
-			expect(counts.remaining).toBe(9);
+			expect(counts.remaining).toBe(totalCriteriaCount);
 			expect(counts.ready).toBe(0);
 			expect(counts.needsValidation).toBe(0);
 			expect(counts.needsAttention).toBe(0);
@@ -196,7 +190,7 @@ describe("assessment store", () => {
 			const counts = useAssessmentStore.getState().getAssessmentState();
 
 			expect(counts.evaluated).toBe(3);
-			expect(counts.remaining).toBe(6);
+			expect(counts.remaining).toBe(totalCriteriaCount - 3);
 			expect(counts.ready).toBe(1);
 			expect(counts.needsValidation).toBe(1);
 			expect(counts.needsAttention).toBe(1);

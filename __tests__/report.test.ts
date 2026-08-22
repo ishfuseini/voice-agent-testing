@@ -1,8 +1,49 @@
 import { describe, it, expect } from "vitest";
+import { pillars } from "@/lib/criteria";
 import { generateReport } from "@/lib/report";
 import { CriterionState } from "@/lib/types";
 import type { AssessmentItem } from "@/lib/types";
 import type { AssessmentCounts } from "@/stores/assessment";
+
+const totalCriteria = pillars.reduce(
+	(acc, p) => acc + p.criteria.length,
+	0,
+);
+
+const emptyCounts: AssessmentCounts = {
+	evaluated: 0,
+	remaining: totalCriteria,
+	ready: 0,
+	needsValidation: 0,
+	needsAttention: 0,
+};
+
+/** Build assessment counts derived from the total criteria count. */
+function makeCounts(
+	evaluated: number,
+	overrides: Partial<AssessmentCounts> = {},
+): AssessmentCounts {
+	return {
+		...emptyCounts,
+		evaluated,
+		remaining: totalCriteria - evaluated,
+		...overrides,
+	};
+}
+
+/** Map a criterion state to the corresponding count-key override. */
+function stateCount(state: CriterionState): Partial<AssessmentCounts> {
+	switch (state) {
+		case CriterionState.Ready:
+			return { ready: 1 };
+		case CriterionState.NeedsValidation:
+			return { needsValidation: 1 };
+		case CriterionState.NeedsAttention:
+			return { needsAttention: 1 };
+		default:
+			return {};
+	}
+}
 
 function makeItem(
 	pillarKey: string,
@@ -14,73 +55,45 @@ function makeItem(
 	return { pillarKey, criterionKey, state, evidence, recommendation };
 }
 
-const emptyCounts: AssessmentCounts = {
-	evaluated: 0,
-	remaining: 9,
-	ready: 0,
-	needsValidation: 0,
-	needsAttention: 0,
-};
-
 describe("report generation", () => {
 	describe("state groupings", () => {
-		it("contains a READY section header when a Ready item exists", () => {
-			const items = [
-				makeItem(
-					"latency",
-					"end_of_speech_to_first_audio",
-					CriterionState.Ready,
-					"p50 latency is 250ms",
-					"Continue monitoring",
-				),
-			];
-			const counts = { ...emptyCounts, evaluated: 1, remaining: 8, ready: 1 };
-			const report = generateReport(items, counts);
+		it.each([
+			{
+				label: "READY",
+				state: CriterionState.Ready,
+				pillarKey: "latency",
+				criterionKey: "end_of_speech_to_first_audio",
+				evidence: "p50 latency is 250ms",
+				recommendation: "Continue monitoring",
+			},
+			{
+				label: "NEEDS VALIDATION",
+				state: CriterionState.NeedsValidation,
+				pillarKey: "tool_calling",
+				criterionKey: "failure_handling",
+				evidence: "CRM health check timed out",
+				recommendation: "Verify CRM connectivity",
+			},
+			{
+				label: "NEEDS ATTENTION",
+				state: CriterionState.NeedsAttention,
+				pillarKey: "observability",
+				criterionKey: "trace_stream",
+				evidence: "No trace events emitted",
+				recommendation: "Instrument the conversation hook",
+			},
+		])(
+			"contains a $label section header when an item exists",
+			({ label, state, pillarKey, criterionKey, evidence, recommendation }) => {
+				const items = [
+					makeItem(pillarKey, criterionKey, state, evidence, recommendation),
+				];
+				const counts = makeCounts(1, stateCount(state));
+				const report = generateReport(items, counts);
 
-			expect(report).toContain("## READY");
-		});
-
-		it("contains a NEEDS VALIDATION section header when applicable", () => {
-			const items = [
-				makeItem(
-					"tool_calling",
-					"failure_handling",
-					CriterionState.NeedsValidation,
-					"CRM health check timed out",
-					"Verify CRM connectivity",
-				),
-			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 1,
-				remaining: 8,
-				needsValidation: 1,
-			};
-			const report = generateReport(items, counts);
-
-			expect(report).toContain("## NEEDS VALIDATION");
-		});
-
-		it("contains a NEEDS ATTENTION section header when applicable", () => {
-			const items = [
-				makeItem(
-					"observability",
-					"trace_stream",
-					CriterionState.NeedsAttention,
-					"No trace events emitted",
-					"Instrument the conversation hook",
-				),
-			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 1,
-				remaining: 8,
-				needsAttention: 1,
-			};
-			const report = generateReport(items, counts);
-
-			expect(report).toContain("## NEEDS ATTENTION");
-		});
+				expect(report).toContain(`## ${label}`);
+			},
+		);
 
 		it("renders all three state sections when all states are present", () => {
 			const items = [
@@ -106,14 +119,11 @@ describe("report generation", () => {
 					"Step C",
 				),
 			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 3,
-				remaining: 6,
+			const counts = makeCounts(3, {
 				ready: 1,
 				needsValidation: 1,
 				needsAttention: 1,
-			};
+			});
 			const report = generateReport(items, counts);
 
 			expect(report).toContain("## READY");
@@ -131,7 +141,7 @@ describe("report generation", () => {
 					"Step A",
 				),
 			];
-			const counts = { ...emptyCounts, evaluated: 1, remaining: 8, ready: 1 };
+			const counts = makeCounts(1, { ready: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report).toContain("## READY");
@@ -151,7 +161,7 @@ describe("report generation", () => {
 					"Continue monitoring",
 				),
 			];
-			const counts = { ...emptyCounts, evaluated: 1, remaining: 8, ready: 1 };
+			const counts = makeCounts(1, { ready: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report).toContain("p50 latency is 250ms");
@@ -167,12 +177,7 @@ describe("report generation", () => {
 					"Instrument the conversation hook",
 				),
 			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 1,
-				remaining: 8,
-				needsAttention: 1,
-			};
+			const counts = makeCounts(1, { needsAttention: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report).toContain("Instrument the conversation hook");
@@ -189,12 +194,7 @@ describe("report generation", () => {
 					"Verify CRM connectivity in staging",
 				),
 			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 1,
-				remaining: 8,
-				needsValidation: 1,
-			};
+			const counts = makeCounts(1, { needsValidation: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report).toContain("CRM health check timed out");
@@ -220,13 +220,7 @@ describe("report generation", () => {
 					"Verify CRM connectivity",
 				),
 			];
-			const counts = {
-				...emptyCounts,
-				evaluated: 2,
-				remaining: 7,
-				ready: 1,
-				needsValidation: 1,
-			};
+			const counts = makeCounts(2, { ready: 1, needsValidation: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report).not.toMatch(/\d+%/);
@@ -242,7 +236,7 @@ describe("report generation", () => {
 					"Step A",
 				),
 			];
-			const counts = { ...emptyCounts, evaluated: 1, remaining: 8, ready: 1 };
+			const counts = makeCounts(1, { ready: 1 });
 			const report = generateReport(items, counts);
 
 			expect(report.toLowerCase()).not.toContain("score");
@@ -251,7 +245,7 @@ describe("report generation", () => {
 		it("displays counts in the summary line, not a percentage", () => {
 			const items: AssessmentItem[] = [];
 			const counts: AssessmentCounts = {
-				evaluated: 9,
+				evaluated: totalCriteria,
 				remaining: 0,
 				ready: 4,
 				needsValidation: 3,
@@ -276,7 +270,7 @@ describe("report generation", () => {
 			const report = generateReport([], emptyCounts);
 
 			expect(report).toContain(
-				"0 Ready · 0 Needs Validation · 0 Needs Attention · 9 Pending",
+				`0 Ready · 0 Needs Validation · 0 Needs Attention · ${totalCriteria} Pending`,
 			);
 		});
 	});
