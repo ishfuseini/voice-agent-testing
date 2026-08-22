@@ -1,0 +1,652 @@
+{
+  "agent_id": "agent_1101m0ndx34df9v9180adpxak65q",
+  "name": "Readiness Assessor",
+  "conversation_config": {
+    "asr": {
+      "quality": "high",
+      "provider": "scribe_realtime",
+      "user_input_audio_format": "pcm_16000",
+      "keywords": []
+    },
+    "turn": {
+      "turn_timeout": 7,
+      "initial_wait_time": null,
+      "silence_end_call_timeout": -1,
+      "mode": "turn",
+      "turn_eagerness": "normal",
+      "spelling_patience": "auto",
+      "speculative_turn": true,
+      "retranscribe_on_turn_timeout": false,
+      "turn_model": "turn_v3",
+      "interruption_ignore_terms": [],
+      "interruption_ignore_term_languages": [],
+      "merge_with_default_ignore_terms": false,
+      "transcribe_on_disabled_interruptions": false,
+      "soft_timeout_config": {
+        "timeout_seconds": -1,
+        "message": "Hhmmmm...yeah.",
+        "additional_soft_timeout_messages": [],
+        "use_llm_generated_message": false,
+        "randomize_fillers": false,
+        "max_soft_timeouts_per_generation": 1,
+        "llm_generated_message_prompt_override": null,
+        "disable_until_first_user_message": false
+      }
+    },
+    "tts": {
+      "model_id": "eleven_flash_v2",
+      "voice_id": "EXAVITQu4vr4xnSDxMaL",
+      "supported_voices": [],
+      "expressive_mode": false,
+      "suggested_audio_tags": [],
+      "agent_output_audio_format": "pcm_16000",
+      "optimize_streaming_latency": 3,
+      "stability": 0.5,
+      "speed": 0.93,
+      "similarity_boost": 0.8,
+      "text_normalisation_type": "system_prompt",
+      "pronunciation_dictionary_locators": [],
+      "enable_phoneme_tags": true,
+      "audio_effects": null
+    },
+    "conversation": {
+      "text_only": false,
+      "max_duration_seconds": 600,
+      "max_duration_seconds_after_last_agent_message": null,
+      "client_events": [
+        "audio",
+        "interruption",
+        "agent_response",
+        "user_transcript",
+        "agent_response_correction",
+        "agent_tool_response"
+      ],
+      "file_input": {
+        "enabled": true,
+        "max_files_in_memory": 10,
+        "max_files_per_conversation": 10
+      },
+      "monitoring_enabled": false,
+      "monitoring_events": [
+        "user_transcript",
+        "agent_response",
+        "agent_response_correction"
+      ],
+      "dtmf_input_settings": null,
+      "background_sound": {
+        "source_type": null,
+        "source_id": null,
+        "volume": 0.15,
+        "crossfade_loop": true
+      },
+      "source_attribution": false
+    },
+    "language_presets": {},
+    "vad": {
+      "background_voice_detection": false
+    },
+    "realtime_model": null,
+    "agent": {
+      "first_message": "Let's start our review",
+      "language": "en",
+      "hinglish_mode": false,
+      "dynamic_variables": {
+        "dynamic_variable_placeholders": {}
+      },
+      "disable_first_message_interruptions": true,
+      "max_conversation_duration_message": "",
+      "text_behavior_overrides": null,
+      "prompt": {
+        "prompt": "## Identity\nYou are an experienced Solutions Engineer conducting a production-readiness review of a voice-agent deployment. You are not reading a form aloud. You are running technical discovery — the same way a senior engineer would interview a team before signing off on production traffic.\nYour tone is conversational, curious, and precise. You ask one clear question at a time. You use previous answers to shape follow-ups. You never re-ask what has already been answered.\n## Conduct\n- **One question at a time.** Never stack multiple questions in a single turn. Wait for the user's answer before moving on.\n- **Contextual follow-ups.** If the user says they deploy to telephony, ask about telephony-specific concerns — not generic web questions. Use what you've heard.\n- **Ask for measurable evidence.** When a criterion calls for a metric (e.g., latency), ask whether they measure it and what the numbers are. Don't accept \"it's fine\" — ask \"how do you know?\"\n- **Explain why when it helps.** If the user seems unsure why you're asking, briefly explain the concern (1 sentence) and re-ask.\n- **Recognize insufficient information.** If the user cannot provide enough detail (e.g., \"we haven't measured that\"), acknowledge the gap, record it via `update_readiness_item` with status `needs_validation`, and move to the next criterion. Do not force an answer or re-ask later.\n- **Never fabricate.** Record only what the user actually said. If they say \"around two seconds,\" write that — not \"2.0s\" or a precise number they didn't give.\n- **Periodic summaries.** After covering roughly half the criteria, give a brief summary: what's been evaluated, current state counts, and what remains. Keep it under 15 seconds.\n- **Pace.** Target roughly 40 seconds per criterion including follow-ups. The full review completes in 5–10 minutes.\n## Review Structure\nYou conduct the review across three pillars. Ask about each criterion within a pillar before moving to the next pillar.\n### Pillar 1: Latency & Turn-Taking\n- **End-of-speech to first-audio latency** — Do you measure the time between the caller finishing their sentence and hearing the first agent audio? What are typical values? Do you track percentiles (p50, p95)?\n- **Interruption handling** — Can users interrupt the agent mid-speech (barge-in)? Is it tested? What happens when they do?\n- **Turn-taking timeout** — How does the system handle silence? What's the timeout before the agent prompts or ends? Is it configurable?\n### Pillar 2: Tool Calling & Grounding\n- **Client tool registration** — Do you register tools client-side or server-side? How are they configured?\n- **Tool grounding & evidence capture** — Does the agent ground its responses in tool results? Can you see the evidence chain?\n- **Failure path handling** — What happens when a tool times out or fails? Does the agent distinguish \"unverified\" from \"broken\"? (Call `check_crm_health` to demonstrate this.)\n### Pillar 3: Observability & Monitoring\n- **Trace event stream** — Do you have a conversation trace with timestamps? Can you see tool calls, results, and state changes in order?\n- **Live session metrics** — Do you track latency percentiles live during a session? Are they visible while the conversation runs?\n- **Report generation & export** — Can you generate a readiness report from the session? Is it exportable?\n## Failure Path\nAt the criterion \"Failure path handling\" (Pillar 2), you MUST call `check_crm_health`. This tool always times out — that is intentional. When it does:\n1. Explain the result conversationally: \"I couldn't verify the CRM integration — the request timed out.\"\n2. Mark the criterion as `needs_validation` (NOT `needs_attention`) — the integration is unverified, not confirmed broken. Explain this distinction: a timeout means we couldn't check, not that it's down.\n3. Call `update_readiness_item` with status `needs_validation`, evidence about the timeout, and a recommendation to re-run the check and add synthetic monitoring.\n4. Continue to the next topic without terminating the conversation.\nThis distinction — unverified ≠ broken — is the same distinction the assessment model makes. Make the connection explicit in your response.\n## Starting the Review\nWhen the conversation begins, introduce the review briefly (under 15 seconds):\n> \"I'll be conducting a production-readiness review of your voice deployment. I'll ask about latency, tool calling, and observability — one question at a time. Let's start: what channel are you deploying to — web, mobile, or telephony?\"\nThen proceed through the pillars in order.\n## Completing the Review\nWhen all criteria have been evaluated, call `complete_assessment` to trigger report generation. Then give a brief closing summary (under 20 seconds) referencing the report.",
+        "llm": "gemini-2.5-flash",
+        "reasoning_effort": null,
+        "opener": null,
+        "thinking_budget": null,
+        "enable_reasoning_summary": false,
+        "temperature": 0,
+        "max_tokens": -1,
+        "tool_ids": [
+          "tool_3201m0nfe1amen4rx8n3xth4p61g",
+          "tool_2401m0nfg1mee5596bwze1hp1vyd",
+          "tool_1301m0nepheeehybca32pxr39akj",
+          "tool_4601m0nej4mwegrb4b2hy3mk62cw"
+        ],
+        "built_in_tools": {
+          "transfer_to_agent": null,
+          "update_state": null,
+          "memory_entry_search": null,
+          "run_subagent": null,
+          "request_help": null,
+          "end_call": null,
+          "language_detection": null,
+          "transfer_to_number": null,
+          "skip_turn": null,
+          "play_keypad_touch_tone": null,
+          "voicemail_detection": null,
+          "transfer_to_genesys": null,
+          "transfer_to_genesys_chat": null,
+          "transfer_to_genesys_bot": null
+        },
+        "enable_parallel_tool_calls": false,
+        "mcp_server_ids": [],
+        "native_mcp_server_ids": [],
+        "knowledge_base": [],
+        "custom_llm": null,
+        "bedrock_llm": null,
+        "speech_engine": null,
+        "ignore_default_personality": true,
+        "rag": {
+          "enabled": false,
+          "embedding_model": "e5_mistral_7b_instruct",
+          "optional_rag_enabled": false,
+          "max_vector_distance": 0.6,
+          "max_documents_length": 50000,
+          "max_retrieved_rag_chunks_count": 20,
+          "num_candidates": null,
+          "query_rewrite_prompt_override": null,
+          "knowledge_base_tool_info": null
+        },
+        "timezone": "America/New_York",
+        "backup_llm_config": {
+          "preference": "default"
+        },
+        "cascade_timeout_seconds": 4,
+        "tools": [
+          {
+            "type": "client",
+            "name": "update_readiness_item",
+            "description": "Record evidence for a readiness criterion. Updates the assessment state with the provided evidence, recommendation, and status.",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "interruption_mode": "allow",
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "parameters": {
+              "description": "",
+              "dynamic_variable": "",
+              "is_omitted": false,
+              "type": "object",
+              "required": [
+                "pillar",
+                "criterion",
+                "status",
+                "evidence",
+                "recommendation"
+              ],
+              "properties": {
+                "pillar": {
+                  "type": "string",
+                  "description": "The pillar key: latency, tool_calling, or observability",
+                  "enum": [
+                    "latency",
+                    "tool_calling",
+                    "observability"
+                  ],
+                  "is_system_provided": false,
+                  "dynamic_variable": "",
+                  "allowed_values_dynamic_variable": "",
+                  "constant_value": "",
+                  "is_omitted": false
+                },
+                "criterion": {
+                  "type": "string",
+                  "description": "The criterion key (e.g., end_of_speech_to_first_audio, interruption_handling, failure_handling)",
+                  "enum": null,
+                  "is_system_provided": false,
+                  "dynamic_variable": "",
+                  "allowed_values_dynamic_variable": "",
+                  "constant_value": "",
+                  "is_omitted": false
+                },
+                "status": {
+                  "type": "string",
+                  "description": "The assessment state for this criterion",
+                  "enum": [
+                    "ready",
+                    "needs_validation",
+                    "needs_attention"
+                  ],
+                  "is_system_provided": false,
+                  "dynamic_variable": "",
+                  "allowed_values_dynamic_variable": "",
+                  "constant_value": "",
+                  "is_omitted": false
+                },
+                "evidence": {
+                  "type": "string",
+                  "description": "The evidence gathered during conversation — what the user actually said. Do not fabricate.",
+                  "enum": null,
+                  "is_system_provided": false,
+                  "dynamic_variable": "",
+                  "allowed_values_dynamic_variable": "",
+                  "constant_value": "",
+                  "is_omitted": false
+                },
+                "recommendation": {
+                  "type": "string",
+                  "description": "A concrete, actionable next step for addressing this criterion",
+                  "enum": null,
+                  "is_system_provided": false,
+                  "dynamic_variable": "",
+                  "allowed_values_dynamic_variable": "",
+                  "constant_value": "",
+                  "is_omitted": false
+                }
+              }
+            },
+            "expects_response": false,
+            "dynamic_variables": {
+              "dynamic_variable_placeholders": {}
+            },
+            "execution_mode": "immediate"
+          },
+          {
+            "type": "client",
+            "name": "get_assessment_state",
+            "description": "Returns the current assessment state — counts of evaluated, remaining, ready, needs_validation, and needs_attention criteria.",
+            "response_timeout_secs": 1,
+            "disable_interruptions": false,
+            "interruption_mode": "allow",
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "parameters": null,
+            "expects_response": true,
+            "dynamic_variables": {
+              "dynamic_variable_placeholders": {}
+            },
+            "execution_mode": "immediate"
+          },
+          {
+            "type": "client",
+            "name": "complete_assessment",
+            "description": "Mark the review as complete and trigger report generation. Call this only when all criteria have been evaluated.",
+            "response_timeout_secs": 20,
+            "disable_interruptions": false,
+            "interruption_mode": "allow",
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "parameters": null,
+            "expects_response": false,
+            "dynamic_variables": {
+              "dynamic_variable_placeholders": {}
+            },
+            "execution_mode": "post_tool_speech"
+          },
+          {
+            "type": "client",
+            "name": "check_crm_health",
+            "description": "Check the health of the CRM integration. This tool simulates a dependency check and always returns a timeout to demonstrate the failure path.",
+            "response_timeout_secs": 8,
+            "disable_interruptions": false,
+            "interruption_mode": "allow",
+            "force_pre_tool_speech": false,
+            "pre_tool_speech": "auto",
+            "assignments": [],
+            "tool_call_sound": null,
+            "tool_call_sound_behavior": "auto",
+            "tool_error_handling_mode": "auto",
+            "parameters": null,
+            "expects_response": true,
+            "dynamic_variables": {
+              "dynamic_variable_placeholders": {}
+            },
+            "execution_mode": "immediate"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {
+    "created_at_unix_secs": 1787425625,
+    "updated_at_unix_secs": 1787427634
+  },
+  "platform_settings": {
+    "evaluation": {
+      "criteria": []
+    },
+    "widget": {
+      "variant": "full",
+      "placement": "bottom-right",
+      "expandable": "never",
+      "avatar": {
+        "type": "orb",
+        "color_1": "#2792dc",
+        "color_2": "#9ce6e6"
+      },
+      "feedback_mode": "during",
+      "end_feedback": {
+        "type": "rating"
+      },
+      "bg_color": "#ffffff",
+      "text_color": "#000000",
+      "btn_color": "#000000",
+      "btn_text_color": "#ffffff",
+      "border_color": "#e1e1e1",
+      "focus_color": "#000000",
+      "border_radius": null,
+      "btn_radius": null,
+      "action_text": null,
+      "start_call_text": null,
+      "end_call_text": null,
+      "expand_text": null,
+      "listening_text": null,
+      "speaking_text": null,
+      "shareable_page_text": null,
+      "shareable_page_show_terms": true,
+      "terms_text": "#### Terms and conditions\n\nBy clicking \"Agree,\" and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.",
+      "terms_html": "<h4>Terms and conditions</h4>\n<p>By clicking &quot;Agree,&quot; and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.\nIf you do not wish to have your conversations recorded, please refrain from using this service.</p>\n",
+      "terms_key": null,
+      "show_avatar_when_collapsed": false,
+      "disable_banner": false,
+      "override_link": null,
+      "markdown_link_allowed_hosts": [],
+      "markdown_link_include_www": true,
+      "markdown_link_allow_http": true,
+      "mic_muting_enabled": true,
+      "transcript_enabled": true,
+      "text_input_enabled": true,
+      "conversation_mode_toggle_enabled": false,
+      "default_expanded": false,
+      "always_expanded": false,
+      "dismissible": false,
+      "show_agent_status": false,
+      "show_conversation_id": true,
+      "strip_audio_tags": true,
+      "syntax_highlight_theme": null,
+      "text_contents": {
+        "main_label": null,
+        "start_call": null,
+        "start_chat": null,
+        "new_call": null,
+        "end_call": null,
+        "mute_microphone": null,
+        "change_language": null,
+        "collapse": null,
+        "expand": null,
+        "copied": null,
+        "accept_terms": null,
+        "dismiss_terms": null,
+        "listening_status": null,
+        "speaking_status": null,
+        "connecting_status": null,
+        "chatting_status": null,
+        "input_label": null,
+        "input_placeholder": null,
+        "input_placeholder_text_only": null,
+        "input_placeholder_new_conversation": null,
+        "user_ended_conversation": null,
+        "agent_ended_conversation": null,
+        "conversation_id": null,
+        "error_occurred": null,
+        "copy_id": null,
+        "initiate_feedback": null,
+        "request_follow_up_feedback": null,
+        "thanks_for_feedback": null,
+        "thanks_for_feedback_details": null,
+        "follow_up_feedback_placeholder": null,
+        "submit": null,
+        "go_back": null,
+        "send_message": null,
+        "text_mode": null,
+        "voice_mode": null,
+        "switched_to_text_mode": null,
+        "switched_to_voice_mode": null,
+        "copy": null,
+        "download": null,
+        "wrap": null,
+        "agent_working": null,
+        "agent_done": null,
+        "agent_error": null,
+        "attach_file": null,
+        "remove_file": null,
+        "file_upload_error": null,
+        "file_type_unsupported": null,
+        "file_too_large": null,
+        "file_limit_reached": null,
+        "typing_indicator": null
+      },
+      "styles": {
+        "base": null,
+        "base_hover": null,
+        "base_active": null,
+        "base_border": null,
+        "base_subtle": null,
+        "base_primary": null,
+        "base_error": null,
+        "accent": null,
+        "accent_hover": null,
+        "accent_active": null,
+        "accent_border": null,
+        "accent_subtle": null,
+        "accent_primary": null,
+        "overlay_padding": null,
+        "button_radius": null,
+        "input_radius": null,
+        "bubble_radius": null,
+        "sheet_radius": null,
+        "compact_sheet_radius": null,
+        "dropdown_sheet_radius": null
+      },
+      "show_resize_button": true,
+      "language_selector": false,
+      "supports_text_only": true,
+      "custom_avatar_path": null,
+      "language_presets": {}
+    },
+    "data_collection": {},
+    "data_collection_scopes": {},
+    "analysis_items": {
+      "evaluation_criteria": [],
+      "data_collection": []
+    },
+    "overrides": {
+      "conversation_config_override": {
+        "asr": {
+          "keywords": false
+        },
+        "turn": {
+          "soft_timeout_config": {
+            "message": false,
+            "additional_soft_timeout_messages": false
+          }
+        },
+        "tts": {
+          "model_id": false,
+          "voice_id": false,
+          "stability": false,
+          "speed": false,
+          "similarity_boost": false,
+          "pronunciation_dictionary_locators": false
+        },
+        "conversation": {
+          "text_only": true,
+          "max_duration_seconds": false
+        },
+        "agent": {
+          "first_message": false,
+          "language": false,
+          "max_conversation_duration_message": false,
+          "prompt": {
+            "prompt": false,
+            "llm": false,
+            "tool_ids": false,
+            "native_mcp_server_ids": false,
+            "knowledge_base": false
+          }
+        }
+      },
+      "custom_llm_extra_body": false,
+      "enable_conversation_initiation_client_data_from_webhook": false,
+      "enable_starting_workflow_node_id_from_client": false,
+      "enable_procedure_ids_from_client": false
+    },
+    "workspace_overrides": {
+      "conversation_initiation_client_data_webhook": null,
+      "webhooks": {
+        "post_call_webhook_id": null,
+        "events": [
+          "transcript"
+        ],
+        "transcript_format": "json",
+        "send_audio": false
+      }
+    },
+    "testing": {
+      "attached_tests": [],
+      "referenced_tests_ids": []
+    },
+    "archived": false,
+    "guardrails": {
+      "version": "1",
+      "focus": {
+        "is_enabled": false
+      },
+      "prompt_injection": {
+        "is_enabled": false
+      },
+      "synthetic_voice": {
+        "is_enabled": false,
+        "trigger_action": {
+          "type": "end_call"
+        }
+      },
+      "content": {
+        "execution_mode": "streaming",
+        "config": {
+          "sexual": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "violence": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "harassment": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "self_harm": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "profanity": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "religion_or_politics": {
+            "is_enabled": false,
+            "threshold": "medium"
+          },
+          "medical_and_legal_information": {
+            "is_enabled": false,
+            "threshold": "medium"
+          }
+        },
+        "trigger_action": {
+          "type": "end_call"
+        }
+      },
+      "moderation": null,
+      "custom": {
+        "config": {
+          "configs": []
+        }
+      }
+    },
+    "summary_language": null,
+    "auto_translate_transcript_to_app_language": null,
+    "auth": {
+      "enable_auth": false,
+      "allowlist": [],
+      "require_origin_header": false,
+      "shareable_token": null
+    },
+    "call_limits": {
+      "agent_concurrency_limit": -1,
+      "daily_limit": 100000,
+      "bursting_enabled": true
+    },
+    "queueing_config": {
+      "enabled": false,
+      "wait_timeout_seconds": 180
+    },
+    "ban": null,
+    "smb_metadata": null,
+    "privacy": {
+      "record_voice": true,
+      "retention_days": -1,
+      "delete_transcript_and_pii": false,
+      "delete_audio": false,
+      "apply_to_existing_conversations": false,
+      "zero_retention_mode": false,
+      "nested_history_redaction": false,
+      "conversation_history_redaction": {
+        "enabled": false,
+        "entities": []
+      }
+    },
+    "trust_context": "unknown",
+    "analysis_llm": "gemini-2.5-flash",
+    "analysis_bedrock_llm": null,
+    "analysis_llm_billed": false,
+    "topic_discovery": {
+      "enabled": true
+    },
+    "sentiment_analysis": {
+      "enabled": true
+    },
+    "simulation_library": {
+      "enabled": false,
+      "test_ids": []
+    },
+    "alerting": null,
+    "overview_dashboard_template_id": null,
+    "safety": {
+      "is_blocked_ivc": false,
+      "is_blocked_non_ivc": false,
+      "ignore_safety_evaluation": false
+    }
+  },
+  "phone_numbers": [],
+  "whatsapp_accounts": [],
+  "workflow": {
+    "edges": {},
+    "nodes": {
+      "start_node": {
+        "type": "start",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "edge_order": []
+      }
+    },
+    "prevent_subagent_loops": false
+  },
+  "access_info": {
+    "is_creator": true,
+    "creator_name": "me@ishfuseini.com",
+    "creator_email": "me@ishfuseini.com",
+    "role": "admin",
+    "anonymous_access_level_override": null,
+    "access_source": "creator"
+  },
+  "tags": [],
+  "version_id": "agtvrsn_8201m0nftfkgfrbrss8msjjf67ky",
+  "branch_id": "agtbrch_7201m0ndx4ycex5vpf797zjfmq56",
+  "main_branch_id": "agtbrch_7201m0ndx4ycex5vpf797zjfmq56",
+  "procedures": {},
+  "trust_context": "unknown"
+}
