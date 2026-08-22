@@ -36,8 +36,8 @@
 
 ## 7. ElevenLabs Voice Integration
 
-- [ ] 7.1 Create the ElevenLabs conversation hook/config that registers the four client tools and manages conversation lifecycle (start, end, listening/speaking state); verify the hook initializes with `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` and registers all four tools
-- [ ] 7.2 Wire conversation events (speech detected, transcript, agent response, first audio) to the trace store and metrics store; verify events flow through the single `emit()` interface and latency samples reach the metrics store
+- [x] 7.1 Create the ElevenLabs conversation hook/config that registers the four client tools and manages conversation lifecycle (start, end, listening/speaking state); verify the hook initializes with `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` and registers all four tools
+- [x] 7.2 Wire conversation events (speech detected, transcript, agent response, first audio) to the trace store and metrics store; verify events flow through the single `emit()` interface and latency samples reach the metrics store
 
 ## 8. UI Panel Components
 
