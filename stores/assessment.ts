@@ -33,7 +33,7 @@ interface AssessmentState {
 	completeAssessment: () => void;
 }
 
-function buildInitialCriteria(): Record<string, AssessmentItem> {
+export function buildInitialCriteria(): Record<string, AssessmentItem> {
 	const criteria: Record<string, AssessmentItem> = {};
 	for (const pillar of pillars) {
 		for (const criterion of pillar.criteria) {

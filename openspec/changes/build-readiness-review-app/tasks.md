@@ -54,9 +54,9 @@
 
 ## 10. Tests
 
-- [ ] 10.1 Create `__tests__/assessment.test.ts` testing the assessment reducer — state transitions (Ready, Needs Validation, Needs Attention), no composite score, unknown criterion rejection; verify `pnpm vitest run __tests__/assessment.test.ts` passes
-- [ ] 10.2 Create `__tests__/metrics.test.ts` testing percentile computation (p50, p95) with edge cases (empty, single sample, even/odd count); verify `pnpm vitest run __tests__/metrics.test.ts` passes
-- [ ] 10.3 Create `__tests__/report.test.ts` testing report generation — state groupings, evidence in each finding, next steps present, no composite score; verify `pnpm vitest run __tests__/report.test.ts` passes
+- [x] 10.1 Create `__tests__/assessment.test.ts` testing the assessment reducer — state transitions (Ready, Needs Validation, Needs Attention), no composite score, unknown criterion rejection; verify `pnpm vitest run __tests__/assessment.test.ts` passes
+- [x] 10.2 Create `__tests__/metrics.test.ts` testing percentile computation (p50, p95) with edge cases (empty, single sample, even/odd count); verify `pnpm vitest run __tests__/metrics.test.ts` passes
+- [x] 10.3 Create `__tests__/report.test.ts` testing report generation — state groupings, evidence in each finding, next steps present, no composite score; verify `pnpm vitest run __tests__/report.test.ts` passes
 
 ## 11. Quality Gates and Verification
 
