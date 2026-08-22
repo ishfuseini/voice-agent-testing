@@ -15,6 +15,7 @@ import {
 	ConversationContent,
 	ConversationEmptyState,
 } from "@/components/ui/conversation";
+import { Orb, type AgentState } from "@/components/ui/orb";
 import { Message, MessageContent } from "@/components/ui/message";
 import { useReadinessConversation } from "@/lib/useConversation";
 import { cn } from "@/lib/utils";
@@ -92,33 +93,56 @@ export function ConversationPanel({
 	const isConnecting = status === "connecting";
 	const isConnected = status === "connected";
 
+	const orbState: AgentState = isConnecting
+		? "thinking"
+		: isSpeaking
+			? "talking"
+		: isListening
+			? "listening"
+		: isConnected
+			? "thinking"
+		: null;
+
 	return (
-		<Card className={cn("flex h-full flex-col", className)} {...props}>
+		<Card
+			className={cn(
+				"flex h-full flex-col border-[#8A2BE2] bg-muted/50",
+				className,
+			)}
+			{...props}
+		>
 			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div className="font-heading text-base font-medium">Conversation</div>
+				<div className="font-heading text-xl font-medium underline underline-offset-8">Conversation</div>
+			</CardHeader>
+
+			<CardContent className="flex flex-1 items-center overflow-hidden p-0">
+				<div className="flex w-1/3 flex-col items-center justify-center gap-4">
+					<Orb
+						className="h-30 w-30"
+						colors={["#00FF9C", "#04756F"]}
+						agentState={orbState}
+					/>
 					<AgentStateBadge
 						status={status}
 						isSpeaking={isSpeaking}
 						isListening={isListening}
 					/>
 				</div>
-			</CardHeader>
-
-			<CardContent className="flex-1 overflow-hidden p-0">
-				<Conversation className="h-full">
-					<ConversationContent>
-						{transcript.length === 0 ? (
-							<ConversationEmptyState
-								title="No conversation yet"
-								description={
-									agentId
-										? "Click Start to begin the readiness review"
-										: "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID to begin"
-								}
-							/>
-						) : (
-							transcript.map((entry) => (
+				{transcript.length === 0 ? (
+					<div className="flex h-full w-2/3 items-center justify-center">
+						<ConversationEmptyState
+							title="No conversation yet"
+							description={
+								agentId
+									? "Click Start to begin the readiness review"
+								: "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID to begin"
+						}
+						/>
+					</div>
+				) : (
+					<Conversation className="h-full w-2/3">
+						<ConversationContent>
+							{transcript.map((entry) => (
 								<Message
 									key={entry.id}
 									from={entry.speaker === "user" ? "user" : "assistant"}
@@ -127,16 +151,17 @@ export function ConversationPanel({
 										{entry.text}
 									</MessageContent>
 								</Message>
-							))
-						)}
-					</ConversationContent>
-				</Conversation>
+							))}
+						</ConversationContent>
+					</Conversation>
+				)}
 			</CardContent>
 
 			<CardFooter className="justify-center">
 				{isIdle && (
 					<Button
-						className="w-full"
+						className="w-full border-[#8A2BE2] bg-transparent text-[#8A2BE2] hover:bg-transparent hover:border-[#8A2BE2]"
+						variant="outline"
 						disabled={!agentId || isConnecting}
 						onClick={startSession}
 						size="lg"

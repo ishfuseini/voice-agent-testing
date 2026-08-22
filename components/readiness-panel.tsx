@@ -63,13 +63,13 @@ export function ReadinessPanel({ className, ...props }: ReadinessPanelProps) {
 	const counts = getAssessmentState();
 
 	return (
-		<Card className={cn("flex h-full flex-col", className)} {...props}>
+		<Card className={cn("flex h-full flex-col ring-[#f0dbfe]", className)} {...props}>
 			<CardHeader>
 				<div className="flex items-center justify-between">
-					<div className="font-heading text-base font-medium">
-						Production Readiness
-					</div>
-					<div className="flex gap-1.5">
+					<div className="font-heading text-lg font-medium underline underline-offset-8">
+											Production Readiness
+										</div>
+					<div className="flex gap-1.5 font-sans">
 						<Badge
 							variant="outline"
 							className={cn(

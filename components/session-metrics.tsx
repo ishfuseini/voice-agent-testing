@@ -27,20 +27,20 @@ function MetricBadge({
 }) {
 	return (
 		<div className="flex items-center gap-2">
-			<div className="flex items-center gap-2 rounded-md border px-3 py-1.5">
-				<div
-					className={cn(
-						"flex size-6 items-center justify-center rounded",
-						iconClass,
-					)}
-				>
+			<div
+				className={cn(
+					"flex items-center gap-2 rounded-md border px-3 py-1.5",
+					iconClass,
+				)}
+			>
+				<div className="flex size-6 items-center justify-center">
 					<Icon className="size-4" />
 				</div>
-				<span className="font-heading text-base font-medium tabular-nums">
+				<span className="font-sans text-sm font-medium tabular-nums">
 					{value}
 				</span>
 			</div>
-			<span className="font-heading text-base font-medium">{label}</span>
+			<span className="font-sans text-sm font-medium">{label}</span>
 		</div>
 	);
 }
@@ -66,7 +66,7 @@ export function SessionMetricsPanel({
 	);
 
 	return (
-		<Card className={cn("flex flex-col", className)} {...props}>
+		<Card className={cn("flex flex-col ring-[#c4ecd2]", className)} {...props}>
 			<CardContent className="flex flex-wrap items-center justify-center gap-6 p-1.5">
 				<MetricBadge
 					icon={Clock}
@@ -91,8 +91,8 @@ export function SessionMetricsPanel({
 					label="Tool Failures"
 					value={String(metrics.toolFailureCount)}
 					iconClass={cn(
-						"bg-red-500/10 text-red-500",
-						metrics.toolFailureCount === 0 && "bg-muted text-muted-foreground",
+						"bg-red-500/5 text-red-400",
+						metrics.toolFailureCount === 0 && "bg-red-500/5 text-red-400/50",
 					)}
 				/>
 			</CardContent>
