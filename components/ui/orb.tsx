@@ -170,7 +170,7 @@ function Scene({
 			if (live[1]) targetColor2Ref.current.set(live[1]);
 		}
 		const u = mat.uniforms;
-		u.uTime.value += delta * 0.5;
+		u.uTime.value += delta * 0.2;
 
 		if (u.uOpacity.value < 1) {
 			u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 2);
@@ -207,7 +207,7 @@ function Scene({
 		curInRef.current += (targetIn - curInRef.current) * 0.2;
 		curOutRef.current += (targetOut - curOutRef.current) * 0.2;
 
-		const targetSpeed = 0.1 + (1 - (curOutRef.current - 1) ** 2) * 0.9;
+		const targetSpeed = 0.05 + (1 - (curOutRef.current - 1) ** 2) * 0.4;
 		animSpeedRef.current += (targetSpeed - animSpeedRef.current) * 0.12;
 
 		u.uAnimation.value += delta * animSpeedRef.current;
@@ -478,14 +478,14 @@ void main() {
     float totalRingAlpha = max(ringAlpha1, ringAlpha2);
     
     // Apply screen blend mode for combined rings
-    vec3 ringColor = vec3(1.0); // White ring color
+    vec3 ringColor = vec3(0.0, 1.0, 0.612); // #00FF9C
     color.rgb = 1.0 - (1.0 - color.rgb) * (1.0 - ringColor * totalRingAlpha);
 
     // Define colours to ramp against greyscale (could increase the amount of colours in the ramp)
     vec3 color1 = vec3(0.0, 0.0, 0.0); // Black
     vec3 color2 = uColor1; // Darker Color
     vec3 color3 = uColor2; // Lighter Color
-    vec3 color4 = vec3(1.0, 1.0, 1.0); // White
+    vec3 color4 = vec3(0.0, 1.0, 0.612); // #00FF9C
 
     // Convert grayscale color to the color ramp
     float luminance = mix(color.r, 1.0 - color.r, uInverted);

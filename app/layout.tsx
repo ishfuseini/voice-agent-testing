@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
 	title: "Voice Agent Readiness Review",
 	description: "A voice agent that assesses voice-agent production readiness",
+	icons: {
+		icon: "/assets/favicon.ico",
+	},
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

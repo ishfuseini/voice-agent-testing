@@ -38,10 +38,10 @@ export function ReadinessReport({ className, ...props }: ReadinessReportProps) {
 	};
 
 	return (
-		<Card className={cn("flex h-full flex-col", className)} {...props}>
+		<Card className={cn("flex h-full flex-col ring-[#f0dbfe]", className)} {...props}>
 			<CardHeader>
 				<div className="flex items-center justify-between">
-					<div className="font-heading text-base font-medium">
+					<div className="font-heading text-lg font-medium underline underline-offset-8">
 						Readiness Report
 					</div>
 					{completed && (
