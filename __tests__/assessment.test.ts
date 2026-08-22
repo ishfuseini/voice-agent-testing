@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { pillars } from "@/lib/criteria";
 import { CriterionState } from "@/lib/types";
-import { useAssessmentStore, buildInitialCriteria } from "@/stores/assessment";
+import { buildInitialCriteria, useAssessmentStore } from "@/stores/assessment";
 
 const totalCriteriaCount = pillars.reduce(
 	(acc, p) => acc + p.criteria.length,
@@ -52,9 +52,8 @@ describe("assessment store", () => {
 
 			expect(result).toEqual({ ok: true });
 
-			const item = useAssessmentStore.getState().criteria[
-				"end_of_speech_to_first_audio"
-			];
+			const item =
+				useAssessmentStore.getState().criteria.end_of_speech_to_first_audio;
 			expect(item.state).toBe(CriterionState.Ready);
 			expect(item.evidence).toBe("p50 latency is 250ms");
 			expect(item.recommendation).toBe("Continue monitoring in production");
@@ -71,8 +70,7 @@ describe("assessment store", () => {
 
 			expect(result).toEqual({ ok: true });
 
-			const item =
-				useAssessmentStore.getState().criteria["failure_handling"];
+			const item = useAssessmentStore.getState().criteria.failure_handling;
 			expect(item.state).toBe(CriterionState.NeedsValidation);
 		});
 
@@ -87,7 +85,7 @@ describe("assessment store", () => {
 
 			expect(result).toEqual({ ok: true });
 
-			const item = useAssessmentStore.getState().criteria["trace_stream"];
+			const item = useAssessmentStore.getState().criteria.trace_stream;
 			expect(item.state).toBe(CriterionState.NeedsAttention);
 		});
 	});

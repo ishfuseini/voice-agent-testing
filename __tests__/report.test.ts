@@ -1,14 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { pillars } from "@/lib/criteria";
 import { generateReport } from "@/lib/report";
-import { CriterionState } from "@/lib/types";
 import type { AssessmentItem } from "@/lib/types";
+import { CriterionState } from "@/lib/types";
 import type { AssessmentCounts } from "@/stores/assessment";
 
-const totalCriteria = pillars.reduce(
-	(acc, p) => acc + p.criteria.length,
-	0,
-);
+const totalCriteria = pillars.reduce((acc, p) => acc + p.criteria.length, 0);
 
 const emptyCounts: AssessmentCounts = {
 	evaluated: 0,

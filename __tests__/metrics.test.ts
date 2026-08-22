@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { percentile, p50, p95 } from "@/lib/metrics";
+import { describe, expect, it } from "vitest";
+import { p50, p95, percentile } from "@/lib/metrics";
 import type { LatencySample } from "@/lib/types";
 
 function sample(valueMs: number): LatencySample {
@@ -70,10 +70,7 @@ describe("percentile computation", () => {
 			// [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] — 10 elements
 			// p90: ceil(0.90 * 10) = 9, index 8 → 90
 			expect(
-				percentile(
-					samples(10, 20, 30, 40, 50, 60, 70, 80, 90, 100),
-					90,
-				),
+				percentile(samples(10, 20, 30, 40, 50, 60, 70, 80, 90, 100), 90),
 			).toBe(90);
 		});
 
