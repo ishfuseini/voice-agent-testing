@@ -1,0 +1,7 @@
+{
+	"database": "dolt",
+	"backend": "dolt",
+	"dolt_mode": "embedded",
+	"dolt_database": "voice_agent_testing",
+	"project_id": "d8e1a2cb-80c3-441d-9ea7-4512d6193ccb"
+}

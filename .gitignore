@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+
+# Local agent tooling (duplicate openspec skills for other agents)
+.omp/
+.opencode/
+
+# Downloaded ElevenLabs reference docs (re-pullable via CLI/docs)
+docs/ui/
