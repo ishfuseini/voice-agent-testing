@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computeSessionMetrics } from "@/lib/metrics";
 import { generateReport } from "@/lib/report";
 import {
@@ -27,9 +27,26 @@ function resetStores() {
 	useTraceStore.getState().clear();
 }
 
+/**
+ * Shared helper: assert that a generated report contains no composite
+ * score, percentage, or rating anywhere in its output.
+ */
+function expectNoCompositeScore(report: string) {
+	expect(report.toLowerCase()).not.toContain("score");
+	expect(report.toLowerCase()).not.toContain("percentage");
+	expect(report.toLowerCase()).not.toContain("%");
+	expect(report.toLowerCase()).not.toContain("composite");
+	expect(report.toLowerCase()).not.toContain("rating");
+	expect(report.toLowerCase()).not.toContain("grade");
+}
+
 describe("E2E review session flow", () => {
-	beforeEach(() => resetStores());
-	afterEach(() => resetStores());
+	beforeEach(() => {
+		resetStores();
+	});
+	afterEach(() => {
+		resetStores();
+	});
 
 	// ── 12.1: All three assessment states are reachable ─────────────────
 
@@ -40,12 +57,14 @@ describe("E2E review session flow", () => {
 				criterion: "end_of_speech_to_first_audio",
 				status: "ready",
 				evidence: "p50 latency is 250ms, well within SLA",
+				recommendation: "Continue monitoring p50/p95 after deploy",
 			});
 			update_readiness_item({
 				pillar: "tool_calling",
 				criterion: "tool_registration",
 				status: "needs_validation",
 				evidence: "Tools registered but dynamic variables not tested",
+				recommendation: "Test dynamic variables in staging",
 			});
 			update_readiness_item({
 				pillar: "observability",
@@ -67,32 +86,48 @@ describe("E2E review session flow", () => {
 	// ── 12.2: check_crm_health times out, agent handles gracefully ─────
 
 	describe("12.2 — check_crm_health timeout", () => {
-		it("times out, records failure, and instructs Needs Validation", async () => {
-			const result = await check_crm_health();
+		it("times out, records failure, and instructs Needs Validation", () => {
+			vi.useFakeTimers();
 
-			expect(result).toContain("timed out");
-			expect(result).toContain("Needs Validation");
+			const promise = check_crm_health();
 
-			const metrics = useMetricsStore.getState();
-			expect(metrics.toolFailureCount).toBe(1);
-			expect(metrics.toolDurations).toHaveLength(1);
-			expect(metrics.toolDurations[0].valueMs).toBeGreaterThanOrEqual(4000);
+			// Advance past the 5s timeout without real waiting
+			vi.advanceTimersByTime(5000);
 
-			const events = useTraceStore.getState().events;
-			const toolCall = events.find((e) => e.type === "tool_call");
-			const toolFailure = events.find((e) => e.type === "tool_failure");
-			expect(toolCall).toBeDefined();
-			expect(toolFailure).toBeDefined();
-			expect(toolFailure?.durationMs).toBeGreaterThanOrEqual(4000);
-		}, 10000);
+			return promise.then((result) => {
+				expect(result).toContain("timed out");
+				expect(result).toContain("Needs Validation");
 
-		it("does not set any criterion to Needs Attention as a side effect", async () => {
-			await check_crm_health();
+				const metrics = useMetricsStore.getState();
+				expect(metrics.toolFailureCount).toBe(1);
+				expect(metrics.toolDurations).toHaveLength(1);
+				expect(metrics.toolDurations[0].valueMs).toBeGreaterThanOrEqual(4000);
 
-			const counts = useAssessmentStore.getState().getAssessmentState();
-			expect(counts.needsAttention).toBe(0);
-			expect(counts.evaluated).toBe(0);
-		}, 10000);
+				const events = useTraceStore.getState().events;
+				const toolCall = events.find((e) => e.type === "tool_call");
+				const toolFailure = events.find((e) => e.type === "tool_failure");
+				expect(toolCall).toBeDefined();
+				expect(toolFailure).toBeDefined();
+				expect(toolFailure?.durationMs).toBeGreaterThanOrEqual(4000);
+
+				vi.useRealTimers();
+			});
+		});
+
+		it("does not set any criterion to Needs Attention as a side effect", () => {
+			vi.useFakeTimers();
+
+			const promise = check_crm_health();
+			vi.advanceTimersByTime(5000);
+
+			return promise.then(() => {
+				const counts = useAssessmentStore.getState().getAssessmentState();
+				expect(counts.needsAttention).toBe(0);
+				expect(counts.evaluated).toBe(0);
+
+				vi.useRealTimers();
+			});
+		});
 	});
 
 	// ── 12.3: complete_assessment renders report with state groupings ─
@@ -104,12 +139,14 @@ describe("E2E review session flow", () => {
 				criterion: "end_of_speech_to_first_audio",
 				status: "ready",
 				evidence: "p50 250ms, p95 400ms",
+				recommendation: "Continue monitoring after deploy",
 			});
 			update_readiness_item({
 				pillar: "tool_calling",
 				criterion: "failure_handling",
 				status: "needs_validation",
 				evidence: "CRM timeout path not fully verified",
+				recommendation: "Re-run check and add synthetic monitoring",
 			});
 			update_readiness_item({
 				pillar: "observability",
@@ -127,76 +164,83 @@ describe("E2E review session flow", () => {
 			const counts = useAssessmentStore.getState().getAssessmentState();
 			const report = generateReport(items, counts);
 
-			// Report contains state groupings
+			// Report structure
 			expect(report).toContain("READY");
 			expect(report).toContain("NEEDS VALIDATION");
 			expect(report).toContain("NEEDS ATTENTION");
+			expectNoCompositeScore(report);
 
 			// Report contains evidence
 			expect(report).toContain("p50 250ms");
 			expect(report).toContain("CRM timeout path");
 			expect(report).toContain("No external sink");
 
-			// Report contains next steps
+			// Report contains next steps (→ marker)
 			expect(report).toContain("→ Add OTel export");
-
-			// No composite score
-			expect(report.toLowerCase()).not.toContain("score");
-			expect(report.toLowerCase()).not.toContain("percentage");
-			expect(report.toLowerCase()).not.toContain("%");
 		});
 	});
 
 	// ── 12.4: Trace shows conversation events, tool calls, state changes ─
 
 	describe("12.4 — trace event coverage", () => {
-		it("captures assessment_change, tool_call, tool_failure, and latency events", async () => {
+		it("captures assessment_change, tool_call, tool_failure, and latency events", () => {
+			vi.useFakeTimers();
+
 			update_readiness_item({
 				pillar: "latency",
 				criterion: "interruption_handling",
 				status: "ready",
 				evidence: "Interruption works within 200ms",
+				recommendation: "Continue monitoring interruption latency",
 			});
 
-			await check_crm_health();
+			const promise = check_crm_health();
+			vi.advanceTimersByTime(5000);
 
-			emit({
-				type: "latency",
-				data: { kind: "end_of_speech_to_first_audio", valueMs: 280 },
-			});
-			emit({
-				type: "conversation_start",
-				data: { conversationId: "test" },
-			});
-			emit({
-				type: "speech_detected",
-				data: { message: "hello", role: "user" },
-			});
-			emit({
-				type: "agent_response",
-				data: { message: "hi", role: "agent" },
-			});
+			return promise.then(() => {
+				emit({
+					type: "latency",
+					data: {
+						kind: "end_of_speech_to_first_audio",
+						valueMs: 280,
+					},
+				});
+				emit({
+					type: "conversation_start",
+					data: { conversationId: "test" },
+				});
+				emit({
+					type: "speech_detected",
+					data: { message: "hello", role: "user" },
+				});
+				emit({
+					type: "agent_response",
+					data: { message: "hi", role: "agent" },
+				});
 
-			const events = useTraceStore.getState().events;
-			const types = events.map((e) => e.type);
-			expect(types).toContain("assessment_change");
-			expect(types).toContain("tool_call");
-			expect(types).toContain("tool_failure");
-			expect(types).toContain("latency");
-			expect(types).toContain("conversation_start");
-			expect(types).toContain("speech_detected");
-			expect(types).toContain("agent_response");
+				const events = useTraceStore.getState().events;
+				const types = events.map((e) => e.type);
+				expect(types).toContain("assessment_change");
+				expect(types).toContain("tool_call");
+				expect(types).toContain("tool_failure");
+				expect(types).toContain("latency");
+				expect(types).toContain("conversation_start");
+				expect(types).toContain("speech_detected");
+				expect(types).toContain("agent_response");
 
-			// All events have timestamps and IDs
-			for (const event of events) {
-				expect(event.timestamp).toBeGreaterThan(0);
-				expect(event.id).toMatch(/^evt_\d+$/);
-			}
+				// All events have timestamps and IDs
+				for (const event of events) {
+					expect(event.timestamp).toBeGreaterThan(0);
+					expect(event.id).toMatch(/^evt_\d+$/);
+				}
 
-			// Tool failure has a duration
-			const failure = events.find((e) => e.type === "tool_failure");
-			expect(failure?.durationMs).toBeGreaterThanOrEqual(4000);
-		}, 10000);
+				// Tool failure has a duration
+				const failure = events.find((e) => e.type === "tool_failure");
+				expect(failure?.durationMs).toBeGreaterThanOrEqual(4000);
+
+				vi.useRealTimers();
+			});
+		});
 	});
 
 	// ── 12.5: Session metrics update with latency samples ───────────────
@@ -250,6 +294,7 @@ describe("E2E review session flow", () => {
 				criterion: "end_of_speech_to_first_audio",
 				status: "ready",
 				evidence: "p50 250ms",
+				recommendation: "Continue monitoring",
 			});
 			update_readiness_item({
 				pillar: "observability",
@@ -263,11 +308,7 @@ describe("E2E review session flow", () => {
 			const counts = useAssessmentStore.getState().getAssessmentState();
 			const report = generateReport(items, counts);
 
-			expect(report.toLowerCase()).not.toContain("score");
-			expect(report.toLowerCase()).not.toContain("percentage");
-			expect(report.toLowerCase()).not.toContain("composite");
-			expect(report.toLowerCase()).not.toContain("rating");
-			expect(report.toLowerCase()).not.toContain("grade");
+			expectNoCompositeScore(report);
 		});
 	});
 });
