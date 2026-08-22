@@ -41,16 +41,16 @@
 
 ## 8. UI Panel Components
 
-- [ ] 8.1 Create `components/conversation-panel.tsx` with start/end controls, agent state indicator, and live transcript; verify it renders conversation state from the session store and transcript updates in real time
-- [ ] 8.2 Create `components/readiness-panel.tsx` displaying three pillars with per-criterion status; verify it updates immediately when the assessment store changes (subscribe to store, re-render on mutation)
-- [ ] 8.3 Create `components/session-metrics.tsx` showing p50/p95 end-of-speech to first audio, tool duration p50, and tool failure count; verify it updates live as the metrics store receives new samples
-- [ ] 8.4 Create `components/trace-panel.tsx` rendering timestamped events with durations and visually distinct tool-call events; verify tool calls are styled differently from conversation events
-- [ ] 8.5 Create `components/readiness-report.tsx` rendering the Markdown report with a Markdown export control; verify it renders on `complete_assessment` and the export downloads a `.md` file
+- [x] 8.1 Create `components/conversation-panel.tsx` with start/end controls, agent state indicator, and live transcript; verify it renders conversation state from the session store and transcript updates in real time
+- [x] 8.2 Create `components/readiness-panel.tsx` displaying three pillars with per-criterion status; verify it updates immediately when the assessment store changes (subscribe to store, re-render on mutation)
+- [x] 8.3 Create `components/session-metrics.tsx` showing p50/p95 end-of-speech to first audio, tool duration p50, and tool failure count; verify it updates live as the metrics store receives new samples
+- [x] 8.4 Create `components/trace-panel.tsx` rendering timestamped events with durations and visually distinct tool-call events; verify tool calls are styled differently from conversation events
+- [x] 8.5 Create `components/readiness-report.tsx` rendering the Markdown report with a Markdown export control; verify it renders on `complete_assessment` and the export downloads a `.md` file
 
 ## 9. Single Screen Layout
 
-- [ ] 9.1 Update `app/page.tsx` to compose all four panels (Conversation, Production Readiness, Session Metrics, Trace) on a single screen with no navigation; verify all panels are visible simultaneously without scrolling or tab switching
-- [ ] 9.2 Position the Session Metrics panel so latency measurements are visible while the agent asks the corresponding question; verify the layout keeps metrics and conversation side-by-side
+- [x] 9.1 Update `app/page.tsx` to compose all four panels (Conversation, Production Readiness, Session Metrics, Trace) on a single screen with no navigation; verify all panels are visible simultaneously without scrolling or tab switching
+- [x] 9.2 Position the Session Metrics panel so latency measurements are visible while the agent asks the corresponding question; verify the layout keeps metrics and conversation side-by-side
 
 ## 10. Tests
 
