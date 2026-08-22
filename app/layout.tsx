@@ -27,7 +27,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 				<link
 					rel="stylesheet"
 					href="https://fonts.googleapis.com/css2?family=Fragment+Mono:wght@400;500&display=swap"
-				/>
+        />
+        <script
+            src="https://metrics.ishlab.dev/api/script.js"
+            data-site-id="34b95a3f4da6"
+            defer
+        ></script>
 			</head>
 			<body className="min-h-full flex flex-col">
 				<Providers>{children}</Providers>

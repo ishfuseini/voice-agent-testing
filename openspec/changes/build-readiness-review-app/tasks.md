@@ -79,15 +79,15 @@
 
 _Defer until the app is functionally working end-to-end (Groups 1–12). Apply the `docs/DESIGN.md` design system to make it look right._
 
-- [ ] 13.1 Refactor `app/globals.css` from default shadcn neutral palette to the `docs/DESIGN.md` palette — replace `:root` and `.dark` color values with #111111 background, #F7F7F5 foreground, #B6B6B5 muted, #8A2BE2 primary, #00FF9C accent, #353534 border; verify colors render in the browser
-- [ ] 13.2 Load Elms Sans and Fragment Mono fonts via `<link>` tags in `app/layout.tsx` (not CSS @import); map `--font-heading` to Elms Sans and `--font-sans`/`--font-body` to Fragment Mono in the Tailwind theme; verify headings render in Elms Sans and body in Fragment Mono
+- [x] 13.1 Refactor `app/globals.css` from default shadcn neutral palette to the `docs/DESIGN.md` palette — replace `:root` and `.dark` color values with #111111 background, #F7F7F5 foreground, #B6B6B5 muted, #8A2BE2 primary, #00FF9C accent, #353534 border; verify colors render in the browser
+- [x] 13.2 Load Elms Sans and Fragment Mono fonts via `<link>` tags in `app/layout.tsx` (not CSS @import); map `--font-heading` to Elms Sans and `--font-sans`/`--font-body` to Fragment Mono in the Tailwind theme; verify headings render in Elms Sans and body in Fragment Mono
 - [ ] 13.3 Install Feather Icons (`react-feather`) and remove `lucide-react`; update `components.json` icon library setting; verify a Feather icon renders and no Lucide imports remain
-- [ ] 13.4 Ensure the three assessment states (Ready ✓, Needs Validation ?, Needs Attention !) are visually distinct using the DESIGN.md palette — verify each state has a distinct icon (Feather) and/or color in the readiness panel
-- [ ] 13.5 Re-run `pnpm build` and verify the production build still succeeds after design system changes
+- [x] 13.4 Ensure the three assessment states (Ready ✓, Needs Validation ?, Needs Attention !) are visually distinct using the DESIGN.md palette — verify each state has a distinct icon (Feather) and/or color in the readiness panel
+- [x] 13.5 Re-run `pnpm build` and verify the production build still succeeds after design system changes
 
 ## 14. Deployment and Documentation
 
 - [ ] 13.1 Deploy to Vercel and verify the public URL is accessible and the app functions (conversation starts, agent responds)
-- [ ] 13.2 Write `README.md` covering the problem, architecture, ElevenLabs integration, tool design, assessment model, observability, and how to run; verify it explains the argument in under 5 minutes of reading
-- [ ] 13.3 Add a Design Decisions and Trade-offs section to the README (why three states instead of a score, why client-side tools instead of webhooks, what was cut and why, what changes at production scale); verify the section is present and substantive
-- [ ] 13.4 Add the demo script (the repeatable 5-minute walkthrough) to the README; verify it covers context, discovery, self-measurement, failure path, report, and code review
+- [x] 13.2 Write `README.md` covering the problem, architecture, ElevenLabs integration, tool design, assessment model, observability, and how to run; verify it explains the argument in under 5 minutes of reading
+- [x] 13.3 Add a Design Decisions and Trade-offs section to the README (why three states instead of a score, why client-side tools instead of webhooks, what was cut and why, what changes at production scale); verify the section is present and substantive
+- [x] 13.4 Add the demo script (the repeatable 5-minute walkthrough) to the README; verify it covers context, discovery, self-measurement, failure path, report, and code review
