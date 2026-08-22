@@ -2,7 +2,7 @@
 
 import type { HookOptions } from "@elevenlabs/react";
 import { useConversation } from "@elevenlabs/react";
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
 	check_crm_health,
 	complete_assessment,
@@ -21,109 +21,109 @@ if (!AGENT_ID) {
 	);
 }
 
+// Stable reference for client tools — they are pure store-mutating functions
+// that don't depend on render state, so the same object identity can be reused
+// across renders without causing useConversation to re-initialize.
+const clientTools = {
+	update_readiness_item,
+	get_assessment_state,
+	complete_assessment,
+	check_crm_health,
+};
+
 /**
  * Wraps `useConversation` with:
  * - All four client tools registered (update_readiness_item, get_assessment_state,
  *   complete_assessment, check_crm_health)
  * - Conversation events wired to the trace store via the single emit() interface
  * - Transcript updates pushed to the session store
- * - First-audio latency measured on mode transitions (listening → speaking)
- * - Session lifecycle (start/end) managed through the session store
+ * - First-audio latency measured from user message (end of speech) to agent
+ *   speaking mode
+ * - Session lifecycle (start/end) managed through SDK callbacks only
  *
  * Must be used within a `<ConversationProvider>`.
  */
 export function useReadinessConversation() {
+	// Timestamp of the last user speech transcription — used as the start point
+	// for end-of-speech to first-audio latency. Set in onMessage (user role),
+	// consumed in onModeChange (speaking).
 	const speechEndTimestamp = useRef<number | null>(null);
 
-	const handleStart = useCallback(() => {
-		useSessionStore.getState().start();
-		emit({ type: "conversation_start" });
-	}, []);
-
-	const handleEnd = useCallback(() => {
-		useSessionStore.getState().end();
-		emit({ type: "conversation_end" });
-	}, []);
-
-	const options: HookOptions = {
-		agentId: AGENT_ID,
-		clientTools: {
-			update_readiness_item,
-			get_assessment_state,
-			complete_assessment,
-			check_crm_health,
-		},
-		onConnect: ({ conversationId }) => {
-			emit({
-				type: "conversation_start",
-				data: { conversationId },
-			});
-		},
-		onDisconnect: (details) => {
-			emit({
-				type: "conversation_end",
-				data: { reason: details.reason },
-			});
-			useSessionStore.getState().end();
-		},
-		onError: (message) => {
-			emit({
-				type: "tool_failure",
-				data: { error: message },
-			});
-		},
-		onMessage: ({ message, role }) => {
-			const speaker = role === "user" ? "user" : "agent";
-			useSessionStore.getState().appendTranscript({
-				speaker,
-				text: message,
-			});
-			emit({
-				type: role === "user" ? "speech_detected" : "agent_response",
-				data: { message, role: speaker },
-			});
-		},
-		onModeChange: ({ mode }) => {
-			if (mode === "listening") {
-				// User finished speaking, agent is now processing
-				speechEndTimestamp.current = Date.now();
-				emit({ type: "speech_detected", data: { mode } });
-			} else if (mode === "speaking") {
-				// Agent started speaking — measure latency from speech end
-				if (speechEndTimestamp.current !== null) {
-					const latency = Date.now() - speechEndTimestamp.current;
-					useMetricsStore.getState().recordFirstAudioLatency(latency);
+	const options = useMemo<HookOptions>(
+		() => ({
+			agentId: AGENT_ID,
+			clientTools,
+			onConnect: ({ conversationId }) => {
+				useSessionStore.getState().start();
+				emit({
+					type: "conversation_start",
+					data: { conversationId },
+				});
+			},
+			onDisconnect: (details) => {
+				useSessionStore.getState().end();
+				emit({
+					type: "conversation_end",
+					data: { reason: details.reason },
+				});
+			},
+			onError: (message) => {
+				emit({
+					type: "tool_failure",
+					data: { error: message },
+				});
+			},
+			onMessage: ({ message, role }) => {
+				const speaker = role === "user" ? "user" : "agent";
+				useSessionStore.getState().appendTranscript({
+					speaker,
+					text: message,
+				});
+				if (role === "user") {
+					// User speech transcribed — this is our end-of-speech timestamp
+					speechEndTimestamp.current = Date.now();
 					emit({
-						type: "latency",
-						data: {
-							kind: "end_of_speech_to_first_audio",
-							valueMs: latency,
-						},
+						type: "speech_detected",
+						data: { message, role: speaker },
 					});
-					speechEndTimestamp.current = null;
+				} else {
+					emit({
+						type: "agent_response",
+						data: { message, role: speaker },
+					});
 				}
-				emit({ type: "agent_response", data: { mode } });
-			}
-		},
-		onStatusChange: ({ status }) => {
-			emit({
-				type: "assessment_change",
-				data: { status },
-			});
-		},
-	};
+			},
+			onModeChange: ({ mode }) => {
+				if (mode === "speaking") {
+					// Agent started producing audio — measure latency from
+					// user speech end (recorded in onMessage) to first audio
+					if (speechEndTimestamp.current !== null) {
+						const latency = Date.now() - speechEndTimestamp.current;
+						useMetricsStore.getState().recordFirstAudioLatency(latency);
+						emit({
+							type: "latency",
+							data: {
+								kind: "end_of_speech_to_first_audio",
+								valueMs: latency,
+							},
+						});
+						speechEndTimestamp.current = null;
+					}
+				}
+			},
+		}),
+		[],
+	);
 
 	const conversation = useConversation(options);
 
 	const startSession = useCallback(() => {
-		handleStart();
 		conversation.startSession();
-	}, [conversation, handleStart]);
+	}, [conversation]);
 
 	const endSession = useCallback(() => {
 		conversation.endSession();
-		handleEnd();
-	}, [conversation, handleEnd]);
+	}, [conversation]);
 
 	return {
 		...conversation,
