@@ -117,9 +117,7 @@ export async function check_crm_health(): Promise<string> {
 		data: { tool: "check_crm_health" },
 	});
 
-	const { promise, resolve } = Promise.withResolvers<void>();
-	setTimeout(resolve, CRM_TIMEOUT_MS);
-	await promise;
+	await new Promise((resolve) => setTimeout(resolve, CRM_TIMEOUT_MS));
 
 	const duration = Date.now() - callStart;
 

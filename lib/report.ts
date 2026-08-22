@@ -98,15 +98,17 @@ export function generateReport(
 ): string {
 	const groups = groupByState(items);
 
-	const sections: string[] = [
+	const header = [
 		"# Production Readiness Review",
 		"",
 		`${counts.ready} Ready · ${counts.needsValidation} Needs Validation · ${counts.needsAttention} Needs Attention · ${counts.remaining} Pending`,
-		"",
+	].join("\n");
+
+	const body = [
 		formatSection("READY", "✓", groups.ready),
 		formatSection("NEEDS VALIDATION", "?", groups.needsValidation),
 		formatSection("NEEDS ATTENTION", "!", groups.needsAttention),
-	].filter(Boolean);
+	].filter((s) => s.length > 0);
 
-	return sections.join("\n");
+	return [header, ...body].join("\n\n");
 }

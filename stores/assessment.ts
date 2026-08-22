@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { pillars } from "@/lib/criteria";
-import { CriterionState } from "@/lib/types";
 import type { AssessmentItem } from "@/lib/types";
+import { CriterionState } from "@/lib/types";
 
 export interface AssessmentCounts {
 	evaluated: number;
@@ -58,7 +58,9 @@ export const useAssessmentStore = create<AssessmentState>()((set, get) => ({
 		evidence,
 		recommendation,
 	}) => {
-		const current = get().criteria[criterionKey];
+		const current = Object.hasOwn(get().criteria, criterionKey)
+			? get().criteria[criterionKey]
+			: undefined;
 		if (!current) {
 			return { ok: false, error: `Unknown criterion: ${criterionKey}` };
 		}

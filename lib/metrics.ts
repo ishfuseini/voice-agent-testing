@@ -35,7 +35,7 @@ export function percentile(
 
 	// Nearest rank: position = ceil(P/100 * N), then convert to 0-indexed
 	const rank = Math.ceil((percentile / 100) * n);
-	const index = Math.min(rank - 1, n - 1);
+	const index = Math.max(0, Math.min(rank - 1, n - 1));
 
 	return sorted[index].valueMs;
 }

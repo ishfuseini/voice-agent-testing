@@ -29,23 +29,27 @@ export const useSessionStore = create<SessionState>()((set) => ({
 	startedAt: null,
 	endedAt: null,
 
-	start: () =>
+	start: () => {
+		transcriptSequence = 0;
 		set({
 			status: "active",
 			transcript: [],
 			startedAt: Date.now(),
 			endedAt: null,
-		}),
+		});
+	},
 
 	end: () => set({ status: "ended", endedAt: Date.now() }),
 
-	reset: () =>
+	reset: () => {
+		transcriptSequence = 0;
 		set({
 			status: "idle",
 			transcript: [],
 			startedAt: null,
 			endedAt: null,
-		}),
+		});
+	},
 
 	appendTranscript: (entry) => {
 		transcriptSequence += 1;
