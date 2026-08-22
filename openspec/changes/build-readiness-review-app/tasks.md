@@ -13,26 +13,26 @@
 
 ## 3. Zustand State Stores
 
-- [ ] 3.1 Create `stores/assessment.ts` with assessment state (criteria map, updateReadinessItem, getAssessmentState, completeAssessment); verify the store initializes all criteria as unevaluated and mutations update state
-- [ ] 3.2 Create `stores/trace.ts` with a single `emit(event)` emission interface and trace event list; verify events appended through `emit()` appear in the trace store
-- [ ] 3.3 Create `stores/metrics.ts` with latency samples, tool durations, and failure count; verify the store starts empty and accepts new samples
-- [ ] 3.4 Create `stores/session.ts` with session lifecycle state (idle, active, ended) and conversation metadata; verify the store transitions between states
+- [x] 3.1 Create `stores/assessment.ts` with assessment state (criteria map, updateReadinessItem, getAssessmentState, completeAssessment); verify the store initializes all criteria as unevaluated and mutations update state
+- [x] 3.2 Create `stores/trace.ts` with a single `emit(event)` emission interface and trace event list; verify events appended through `emit()` appear in the trace store
+- [x] 3.3 Create `stores/metrics.ts` with latency samples, tool durations, and failure count; verify the store starts empty and accepts new samples
+- [x] 3.4 Create `stores/session.ts` with session lifecycle state (idle, active, ended) and conversation metadata; verify the store transitions between states
 
 ## 4. Client Tool Handlers
 
-- [ ] 4.1 Create `lib/tools.ts` with `update_readiness_item` handler that mutates the assessment store and returns a confirmation; verify calling it with valid pillar/criterion/status updates the assessment store and emits a trace event
-- [ ] 4.2 Add `get_assessment_state` handler that returns evaluated, remaining, ready, needs_validation, and needs_attention counts from the assessment store; verify the return shape matches the spec
-- [ ] 4.3 Add `complete_assessment` handler that marks the review complete and triggers report generation; verify it sets a completion flag in the assessment store
-- [ ] 4.4 Add `check_crm_health` handler that always returns a timeout after a delay; verify it emits a tool failure trace event and returns a timeout result
+- [x] 4.1 Create `lib/tools.ts` with `update_readiness_item` handler that mutates the assessment store and returns a confirmation; verify calling it with valid pillar/criterion/status updates the assessment store and emits a trace event
+- [x] 4.2 Add `get_assessment_state` handler that returns evaluated, remaining, ready, needs_validation, and needs_attention counts from the assessment store; verify the return shape matches the spec
+- [x] 4.3 Add `complete_assessment` handler that marks the review complete and triggers report generation; verify it sets a completion flag in the assessment store
+- [x] 4.4 Add `check_crm_health` handler that always returns a timeout after a delay; verify it emits a tool failure trace event and returns a timeout result
 
 ## 5. Metrics and Report Logic
 
-- [ ] 5.1 Create `lib/metrics.ts` with p50 and p95 percentile computation from a sorted sample array; verify with known inputs (e.g., [100, 200, 300, 400, 500] → p50=300, p95=500)
-- [ ] 5.2 Create `lib/report.ts` as a pure function taking assessment state and returning a Markdown string grouped by state with evidence and next steps; verify output contains state groupings (READY, NEEDS VALIDATION, NEEDS ATTENTION) and no composite score
+- [x] 5.1 Create `lib/metrics.ts` with p50 and p95 percentile computation from a sorted sample array; verify with known inputs (e.g., [100, 200, 300, 400, 500] → p50=300, p95=500)
+- [x] 5.2 Create `lib/report.ts` as a pure function taking assessment state and returning a Markdown string grouped by state with evidence and next steps; verify output contains state groupings (READY, NEEDS VALIDATION, NEEDS ATTENTION) and no composite score
 
 ## 6. Agent Prompt and Tool Schemas
 
-- [ ] 6.1 Create `agent/prompt.md` with the agent system prompt (Solutions Engineer persona, one-question-at-a-time, contextual follow-ups, no fabrication, periodic summaries) and tool schema definitions for all four tools; verify the file is version controlled and contains all four tool definitions
+- [x] 6.1 Create `agent/prompt.md` with the agent system prompt (Solutions Engineer persona, one-question-at-a-time, contextual follow-ups, no fabrication, periodic summaries) and tool schema definitions for all four tools; verify the file is version controlled and contains all four tool definitions
 
 ## 7. ElevenLabs Voice Integration
 
