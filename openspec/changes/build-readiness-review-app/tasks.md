@@ -60,20 +60,20 @@
 
 ## 11. Quality Gates and Verification
 
-- [ ] 11.1 Run `pnpm test` and verify all tests pass (assessment, metrics, report)
-- [ ] 11.2 Run `pnpm biome check .` and verify it passes with no errors
-- [ ] 11.3 Run `pnpm build` and verify the production build succeeds without errors
-- [ ] 11.4 Run `pnpm dev` with only `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` set and verify the app starts, a conversation can begin, and the agent responds
-- [ ] 11.5 Verify no secrets are committed and `.env.example` documents all required environment variables
+- [x] 11.1 Run `pnpm test` and verify all tests pass (assessment, metrics, report)
+- [x] 11.2 Run `pnpm biome check .` and verify it passes with no errors
+- [x] 11.3 Run `pnpm build` and verify the production build succeeds without errors
+- [x] 11.4 Run `pnpm dev` with only `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` set and verify the app starts, a conversation can begin, and the agent responds
+- [x] 11.5 Verify no secrets are committed and `.env.example` documents all required environment variables
 
 ## 12. End-to-End Demo Verification
 
-- [ ] 12.1 Run a full review session and verify all three assessment states are reachable (Ready, Needs Validation, Needs Attention)
-- [ ] 12.2 Verify `check_crm_health` times out and the agent handles it without breaking — criterion is set to Needs Validation, not Needs Attention, and the conversation continues
-- [ ] 12.3 Verify `complete_assessment` renders a report grouped by state with evidence and next steps, and the Markdown export downloads correctly
-- [ ] 12.4 Verify the trace shows conversation events, tool calls, results, and state changes with timestamps and durations
-- [ ] 12.5 Verify session metrics show p50/p95 end-of-speech to first audio updating live during the conversation
-- [ ] 12.6 Verify no composite percentage appears anywhere in the UI or report
+- [x] 12.1 Run a full review session and verify all three assessment states are reachable (Ready, Needs Validation, Needs Attention)
+- [x] 12.2 Verify `check_crm_health` times out and the agent handles it without breaking — criterion is set to Needs Validation, not Needs Attention, and the conversation continues
+- [x] 12.3 Verify `complete_assessment` renders a report grouped by state with evidence and next steps, and the Markdown export downloads correctly
+- [x] 12.4 Verify the trace shows conversation events, tool calls, results, and state changes with timestamps and durations
+- [x] 12.5 Verify session metrics show p50/p95 end-of-speech to first audio updating live during the conversation
+- [x] 12.6 Verify no composite percentage appears anywhere in the UI or report
 
 ## 13. Design System Polish
 
