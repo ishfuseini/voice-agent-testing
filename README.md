@@ -22,7 +22,6 @@ Open [http://localhost:3000](http://localhost:3000).
 Create `.env.local`:
 
 ```
-ELEVENLABS_API_KEY=your_api_key
 NEXT_PUBLIC_ELEVENLABS_AGENT_ID=your_agent_id
 ```
 
@@ -303,17 +302,21 @@ Click **Export Markdown** to download the report.
 
 ---
 
-## Deploy
+## Deploy to Cloudflare Pages
 
-The app is a static Next.js build — no API routes, no server. Deploy to Vercel:
+The app is a client-side Next.js application with no API routes or server-side
+requirements. `pnpm build` creates a static export in `out/`, ready to serve on
+Cloudflare Pages.
 
-1. Connect the repository in Vercel
-2. Add environment variables:
-   - `ELEVENLABS_API_KEY`
-   - `NEXT_PUBLIC_ELEVENLABS_AGENT_ID`
-3. Deploy
+1. In Cloudflare, create a Pages project and connect this repository.
+2. Set the build command to `pnpm build` and the build output directory to `out`.
+3. Add `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` as an environment variable for both
+   production and preview builds. This is the ElevenLabs agent ID, not an API key.
+4. Deploy the project.
 
-The production build (`pnpm build`) produces a static site with no server-side requirements.
+The agent ID is embedded in the client bundle at build time, so set it before
+building or redeploy after changing it. Do not put an ElevenLabs API key in this
+client-side app.
 
 ---
 
