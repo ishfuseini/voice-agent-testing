@@ -15,8 +15,8 @@ import {
 	ConversationContent,
 	ConversationEmptyState,
 } from "@/components/ui/conversation";
-import { Orb, type AgentState } from "@/components/ui/orb";
 import { Message, MessageContent } from "@/components/ui/message";
+import { type AgentState, Orb } from "@/components/ui/orb";
 import { useReadinessConversation } from "@/lib/useConversation";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/stores/session";
@@ -97,29 +97,31 @@ export function ConversationPanel({
 		? "thinking"
 		: isSpeaking
 			? "talking"
-		: isListening
-			? "listening"
-		: isConnected
-			? "thinking"
-		: null;
+			: isListening
+				? "listening"
+				: isConnected
+					? "thinking"
+					: null;
 
 	return (
 		<Card
 			className={cn(
-				"flex h-full flex-col border-[#8A2BE2] bg-muted/50",
+				"flex h-full flex-col border-primary bg-muted/50",
 				className,
 			)}
 			{...props}
 		>
 			<CardHeader>
-				<div className="font-heading text-xl font-medium underline underline-offset-8">Conversation</div>
+				<div className="font-heading text-xl font-medium underline underline-offset-8">
+					Conversation
+				</div>
 			</CardHeader>
 
 			<CardContent className="flex flex-1 items-center overflow-hidden p-0">
 				<div className="flex w-1/3 flex-col items-center justify-center gap-4">
 					<Orb
 						className="h-30 w-30"
-						colors={["#00FF9C", "#04756F"]}
+						colors={["#B3B8F0", "#F092DD"]}
 						agentState={orbState}
 					/>
 					<AgentStateBadge
@@ -135,8 +137,8 @@ export function ConversationPanel({
 							description={
 								agentId
 									? "Click Start to begin the readiness review"
-								: "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID to begin"
-						}
+									: "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID to begin"
+							}
 						/>
 					</div>
 				) : (
@@ -160,7 +162,7 @@ export function ConversationPanel({
 			<CardFooter className="justify-center">
 				{isIdle && (
 					<Button
-						className="w-full border-[#8A2BE2] bg-transparent text-[#8A2BE2] hover:bg-transparent hover:border-[#8A2BE2]"
+						className="w-full border-primary bg-transparent text-primary hover:border-primary hover:bg-transparent dark:border-primary dark:bg-transparent dark:hover:border-primary dark:hover:bg-transparent"
 						variant="outline"
 						disabled={!agentId || isConnecting}
 						onClick={startSession}

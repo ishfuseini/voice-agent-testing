@@ -66,25 +66,25 @@ export function SessionMetricsPanel({
 	);
 
 	return (
-		<Card className={cn("flex flex-col ring-[#c4ecd2]", className)} {...props}>
+		<Card className={cn("flex flex-col ring-primary/25", className)} {...props}>
 			<CardContent className="flex flex-wrap items-center justify-center gap-6 p-1.5">
 				<MetricBadge
 					icon={Clock}
 					label="Latency (Median)"
 					value={formatMs(metrics.firstAudioP50)}
-					iconClass="bg-blue-500/10 text-blue-500"
+					iconClass="bg-blue-500/10 text-blue-400"
 				/>
 				<MetricBadge
 					icon={Clock}
 					label="Latency (Peak)"
 					value={formatMs(metrics.firstAudioP95)}
-					iconClass="bg-indigo-500/10 text-indigo-500"
+					iconClass="bg-indigo-500/10 text-indigo-400"
 				/>
 				<MetricBadge
 					icon={Wrench}
 					label="Tool Response (Median)"
 					value={formatMs(metrics.toolDurationP50)}
-					iconClass="bg-purple-500/10 text-purple-500"
+					iconClass="bg-purple-500/10 text-purple-400"
 				/>
 				<MetricBadge
 					icon={AlertOctagon}

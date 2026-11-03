@@ -141,10 +141,15 @@ export function TracePanel({ className, ...props }: TracePanelProps) {
 	}, [events]);
 
 	return (
-		<Card className={cn("flex h-full flex-col ring-[#c4ecd2]", className)} {...props}>
+		<Card
+			className={cn("flex h-full flex-col ring-primary/25", className)}
+			{...props}
+		>
 			<CardHeader>
 				<div className="flex items-center justify-between">
-					<div className="font-heading text-lg font-medium underline underline-offset-8">Trace</div>
+					<div className="font-heading text-lg font-medium underline underline-offset-8">
+						Trace
+					</div>
 					<div className="text-muted-foreground text-xs tabular-nums">
 						{events.length} events
 					</div>
