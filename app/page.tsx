@@ -1,8 +1,7 @@
 import Image from "next/image";
-import { ConversationPanel } from "@/components/conversation-panel";
 import { ReadinessPanel } from "@/components/readiness-panel";
-import { ReadinessReport } from "@/components/readiness-report";
 import { SessionMetricsPanel } from "@/components/session-metrics";
+import { SessionStage } from "@/components/session-stage";
 import { TracePanel } from "@/components/trace-panel";
 
 export default function Home() {
@@ -34,14 +33,11 @@ export default function Home() {
 				</div>
 			</header>
 			<main className="mx-auto grid w-full max-w-[1600px] flex-1 grid-cols-1 gap-4 px-4 py-4 sm:gap-5 sm:px-6 sm:py-6 xl:min-h-0 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:overflow-hidden">
-				<div className="flex min-h-0">
-					<ConversationPanel className="min-h-[32rem] w-full xl:min-h-0" />
-				</div>
-				<div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-rows-[auto_minmax(0,1fr)_minmax(0,1fr)]">
+				<SessionStage className="min-h-0" />
+				<div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-rows-[auto_minmax(0,1fr)]">
 					<SessionMetricsPanel className="min-h-0 bg-muted/50 md:col-span-2" />
 					<ReadinessPanel className="min-h-[24rem] bg-muted/50 xl:min-h-0" />
 					<TracePanel className="min-h-[24rem] bg-muted/50 xl:min-h-0" />
-					<ReadinessReport className="min-h-[20rem] bg-muted/50 md:col-span-2 xl:min-h-0" />
 				</div>
 			</main>
 		</div>

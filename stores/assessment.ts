@@ -47,6 +47,42 @@ export function buildInitialCriteria(): Record<string, AssessmentItem> {
 	return criteria;
 }
 
+/**
+ * Count assessment criteria by state. Pure, so it can back both the store's
+ * `getAssessmentState` and reactive consumers that already hold the criteria.
+ */
+export function countAssessment(
+	criteria: Record<string, AssessmentItem>,
+): AssessmentCounts {
+	const counts: AssessmentCounts = {
+		evaluated: 0,
+		remaining: 0,
+		ready: 0,
+		needsValidation: 0,
+		needsAttention: 0,
+	};
+	for (const item of Object.values(criteria)) {
+		switch (item.state) {
+			case CriterionState.Ready:
+				counts.ready += 1;
+				counts.evaluated += 1;
+				break;
+			case CriterionState.NeedsValidation:
+				counts.needsValidation += 1;
+				counts.evaluated += 1;
+				break;
+			case CriterionState.NeedsAttention:
+				counts.needsAttention += 1;
+				counts.evaluated += 1;
+				break;
+			case CriterionState.Unevaluated:
+				counts.remaining += 1;
+				break;
+		}
+	}
+	return counts;
+}
+
 export const useAssessmentStore = create<AssessmentState>()((set, get) => ({
 	criteria: buildInitialCriteria(),
 	completed: false,
@@ -84,35 +120,7 @@ export const useAssessmentStore = create<AssessmentState>()((set, get) => ({
 		return { ok: true };
 	},
 
-	getAssessmentState: () => {
-		const counts: AssessmentCounts = {
-			evaluated: 0,
-			remaining: 0,
-			ready: 0,
-			needsValidation: 0,
-			needsAttention: 0,
-		};
-		for (const item of Object.values(get().criteria)) {
-			switch (item.state) {
-				case CriterionState.Ready:
-					counts.ready += 1;
-					counts.evaluated += 1;
-					break;
-				case CriterionState.NeedsValidation:
-					counts.needsValidation += 1;
-					counts.evaluated += 1;
-					break;
-				case CriterionState.NeedsAttention:
-					counts.needsAttention += 1;
-					counts.evaluated += 1;
-					break;
-				case CriterionState.Unevaluated:
-					counts.remaining += 1;
-					break;
-			}
-		}
-		return counts;
-	},
+	getAssessmentState: () => countAssessment(get().criteria),
 
 	completeAssessment: () => {
 		set({ completed: true });
