@@ -15,7 +15,8 @@ interface SessionState {
 	transcript: TranscriptEntry[];
 	startedAt: number | null;
 	endedAt: number | null;
-	start: () => void;
+	isSample: boolean;
+	start: (options?: { sample?: boolean }) => void;
 	end: () => void;
 	reset: () => void;
 	appendTranscript: (entry: { speaker: Speaker; text: string }) => void;
@@ -28,14 +29,16 @@ export const useSessionStore = create<SessionState>()((set) => ({
 	transcript: [],
 	startedAt: null,
 	endedAt: null,
+	isSample: false,
 
-	start: () => {
+	start: (options) => {
 		transcriptSequence = 0;
 		set({
 			status: "active",
 			transcript: [],
 			startedAt: Date.now(),
 			endedAt: null,
+			isSample: options?.sample ?? false,
 		});
 	},
 
@@ -48,6 +51,7 @@ export const useSessionStore = create<SessionState>()((set) => ({
 			transcript: [],
 			startedAt: null,
 			endedAt: null,
+			isSample: false,
 		});
 	},
 

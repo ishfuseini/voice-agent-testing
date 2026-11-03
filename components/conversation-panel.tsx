@@ -1,6 +1,14 @@
 "use client";
 
-import { Circle, Mic, Phone, PhoneOff, Volume2 } from "lucide-react";
+import {
+	Circle,
+	FlaskConical,
+	Mic,
+	Phone,
+	PhoneOff,
+	Square,
+	Volume2,
+} from "lucide-react";
 import type { ComponentProps } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,18 +26,36 @@ import {
 import { Message, MessageContent } from "@/components/ui/message";
 import { type AgentState, Orb } from "@/components/ui/orb";
 import { useReadinessConversation } from "@/lib/useConversation";
+import type { SampleSessionControls } from "@/lib/useSampleSession";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/stores/session";
+
+// Preserves the incumbent Start Conversation brand treatment (pink outline).
+const BRAND_OUTLINE =
+	"border-primary bg-transparent text-primary hover:border-primary hover:bg-transparent dark:border-primary dark:bg-transparent dark:hover:border-primary dark:hover:bg-transparent";
 
 function AgentStateBadge({
 	status,
 	isSpeaking,
 	isListening,
+	isSample,
 }: {
 	status: string;
 	isSpeaking: boolean;
 	isListening: boolean;
+	isSample: boolean;
 }) {
+	if (isSample) {
+		return (
+			<Badge
+				className="gap-1.5 border-primary/40 bg-primary/10 text-primary"
+				variant="outline"
+			>
+				<FlaskConical className="size-3" />
+				Sample session
+			</Badge>
+		);
+	}
 	if (status === "error") {
 		return (
 			<Badge variant="destructive" className="gap-1.5">
@@ -79,29 +105,36 @@ function AgentStateBadge({
 	);
 }
 
-export type ConversationPanelProps = ComponentProps<typeof Card>;
+export type ConversationPanelProps = ComponentProps<typeof Card> & {
+	sample: SampleSessionControls;
+};
 
 export function ConversationPanel({
+	sample,
 	className,
 	...props
 }: ConversationPanelProps) {
 	const { status, isSpeaking, isListening, startSession, endSession, agentId } =
 		useReadinessConversation();
 	const transcript = useSessionStore((s) => s.transcript);
+	const sessionStatus = useSessionStore((s) => s.status);
+	const isSample = useSessionStore((s) => s.isSample);
 
-	const isIdle = status === "disconnected" || status === "error";
+	const sampleActive = isSample && sessionStatus === "active";
 	const isConnecting = status === "connecting";
 	const isConnected = status === "connected";
 
-	const orbState: AgentState = isConnecting
-		? "thinking"
-		: isSpeaking
-			? "talking"
-			: isListening
-				? "listening"
-				: isConnected
-					? "thinking"
-					: null;
+	const orbState: AgentState = sampleActive
+		? sample.phase
+		: isConnecting
+			? "thinking"
+			: isSpeaking
+				? "talking"
+				: isListening
+					? "listening"
+					: isConnected
+						? "thinking"
+						: null;
 
 	return (
 		<Card
@@ -125,18 +158,31 @@ export function ConversationPanel({
 						status={status}
 						isSpeaking={isSpeaking}
 						isListening={isListening}
+						isSample={isSample}
 					/>
 				</div>
 				{transcript.length === 0 ? (
 					<div className="flex min-h-40 w-full flex-1 items-center justify-center sm:h-full sm:min-h-0 sm:w-2/3">
-						<ConversationEmptyState
-							title="No conversation yet"
-							description={
-								agentId
-									? "Click Start to begin the readiness review"
-									: "Set NEXT_PUBLIC_ELEVENLABS_AGENT_ID to begin"
-							}
-						/>
+						<ConversationEmptyState>
+							<div className="max-w-sm space-y-2">
+								<h3 className="font-heading text-base font-medium">
+									Run a readiness review
+								</h3>
+								<p className="text-muted-foreground text-sm">
+									Nine production criteria — latency, tool calling, and
+									observability — assessed one question at a time. Evidence is
+									recorded as the review runs, and a readiness report is
+									generated at the end.
+								</p>
+								{!agentId && (
+									<p className="text-muted-foreground/80 text-xs">
+										Run the sample session to watch a full review end to end.
+										Connect a live agent with NEXT_PUBLIC_ELEVENLABS_AGENT_ID to
+										review your own deployment.
+									</p>
+								)}
+							</div>
+						</ConversationEmptyState>
 					</div>
 				) : (
 					<Conversation className="h-full min-h-40 w-full flex-1 sm:min-h-0 sm:w-2/3">
@@ -156,26 +202,23 @@ export function ConversationPanel({
 				)}
 			</CardContent>
 
-			<CardFooter className="justify-center">
-				{isIdle && (
+			<CardFooter className="justify-center gap-2">
+				{sampleActive ? (
 					<Button
-						className="w-full border-primary bg-transparent text-primary hover:border-primary hover:bg-transparent dark:border-primary dark:bg-transparent dark:hover:border-primary dark:hover:bg-transparent"
-						variant="outline"
-						disabled={!agentId || isConnecting}
-						onClick={startSession}
+						className="w-full"
+						onClick={sample.stop}
 						size="lg"
+						variant="destructive"
 					>
-						<Phone className="size-4" />
-						Start Conversation
+						<Square className="size-4" />
+						Stop sample session
 					</Button>
-				)}
-				{isConnecting && (
+				) : isConnecting ? (
 					<Button className="w-full" disabled size="lg" variant="secondary">
 						<Circle className="size-4 animate-pulse" />
 						Connecting…
 					</Button>
-				)}
-				{isConnected && (
+				) : isConnected ? (
 					<Button
 						className="w-full"
 						onClick={endSession}
@@ -184,6 +227,37 @@ export function ConversationPanel({
 					>
 						<PhoneOff className="size-4" />
 						End Conversation
+					</Button>
+				) : agentId ? (
+					<>
+						<Button
+							className={cn("flex-1", BRAND_OUTLINE)}
+							onClick={startSession}
+							size="lg"
+							variant="outline"
+						>
+							<Phone className="size-4" />
+							Start Conversation
+						</Button>
+						<Button
+							className="flex-1"
+							onClick={sample.start}
+							size="lg"
+							variant="ghost"
+						>
+							<FlaskConical className="size-4" />
+							Sample session
+						</Button>
+					</>
+				) : (
+					<Button
+						className={cn("w-full", BRAND_OUTLINE)}
+						onClick={sample.start}
+						size="lg"
+						variant="outline"
+					>
+						<FlaskConical className="size-4" />
+						Run sample session
 					</Button>
 				)}
 			</CardFooter>
