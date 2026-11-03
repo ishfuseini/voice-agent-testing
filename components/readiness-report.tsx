@@ -44,11 +44,16 @@ export function ReadinessReport({ className, ...props }: ReadinessReportProps) {
 		>
 			<CardHeader>
 				<div className="flex items-center justify-between">
-					<div className="font-heading text-lg font-medium underline underline-offset-8">
+					<h2 className="font-heading text-xl font-bold tracking-tight">
 						Readiness Report
-					</div>
+					</h2>
 					{completed && (
-						<Button onClick={handleExport} size="sm" variant="outline">
+						<Button
+							onClick={handleExport}
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
 							<Download className="size-4" />
 							Export Markdown
 						</Button>

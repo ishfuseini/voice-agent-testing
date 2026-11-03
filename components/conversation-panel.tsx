@@ -105,22 +105,19 @@ export function ConversationPanel({
 
 	return (
 		<Card
-			className={cn(
-				"flex h-full flex-col border-primary bg-muted/50",
-				className,
-			)}
+			className={cn("flex h-full flex-col bg-muted/50", className)}
 			{...props}
 		>
-			<CardHeader>
-				<div className="font-heading text-xl font-medium underline underline-offset-8">
+			<CardHeader className="pb-2">
+				<h2 className="font-heading text-2xl font-bold tracking-tight">
 					Conversation
-				</div>
+				</h2>
 			</CardHeader>
 
-			<CardContent className="flex flex-1 items-center overflow-hidden p-0">
-				<div className="flex w-1/3 flex-col items-center justify-center gap-4">
+			<CardContent className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-hidden p-4 pt-0 sm:flex-row sm:items-center sm:p-0">
+				<div className="flex w-full shrink-0 items-center justify-center gap-3 sm:w-1/3 sm:flex-col sm:gap-4">
 					<Orb
-						className="h-30 w-30"
+						className="size-24 sm:size-30"
 						colors={["#B3B8F0", "#F092DD"]}
 						agentState={orbState}
 					/>
@@ -131,7 +128,7 @@ export function ConversationPanel({
 					/>
 				</div>
 				{transcript.length === 0 ? (
-					<div className="flex h-full w-2/3 items-center justify-center">
+					<div className="flex min-h-40 w-full flex-1 items-center justify-center sm:h-full sm:min-h-0 sm:w-2/3">
 						<ConversationEmptyState
 							title="No conversation yet"
 							description={
@@ -142,7 +139,7 @@ export function ConversationPanel({
 						/>
 					</div>
 				) : (
-					<Conversation className="h-full w-2/3">
+					<Conversation className="h-full min-h-40 w-full flex-1 sm:min-h-0 sm:w-2/3">
 						<ConversationContent>
 							{transcript.map((entry) => (
 								<Message

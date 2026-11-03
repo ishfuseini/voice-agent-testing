@@ -67,16 +67,16 @@ export function ReadinessPanel({ className, ...props }: ReadinessPanelProps) {
 			className={cn("flex h-full flex-col ring-primary/25", className)}
 			{...props}
 		>
-			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div className="font-heading text-lg font-medium underline underline-offset-8">
+			<CardHeader className="gap-3">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+					<h2 className="font-heading text-xl font-bold tracking-tight">
 						Production Readiness
-					</div>
-					<div className="flex gap-1.5 font-sans">
+					</h2>
+					<div className="flex flex-wrap gap-1.5 font-sans">
 						<Badge
 							variant="outline"
 							className={cn(
-								"gap-1",
+								"gap-1 text-[11px]",
 								STATE_CONFIGS[CriterionState.Ready].badgeClass,
 							)}
 						>
@@ -85,7 +85,7 @@ export function ReadinessPanel({ className, ...props }: ReadinessPanelProps) {
 						<Badge
 							variant="outline"
 							className={cn(
-								"gap-1",
+								"gap-1 text-[11px]",
 								STATE_CONFIGS[CriterionState.NeedsValidation].badgeClass,
 							)}
 						>
@@ -94,7 +94,7 @@ export function ReadinessPanel({ className, ...props }: ReadinessPanelProps) {
 						<Badge
 							variant="outline"
 							className={cn(
-								"gap-1",
+								"gap-1 text-[11px]",
 								STATE_CONFIGS[CriterionState.NeedsAttention].badgeClass,
 							)}
 						>
