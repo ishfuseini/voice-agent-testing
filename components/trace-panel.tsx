@@ -158,7 +158,8 @@ export function TracePanel({ className, ...props }: TracePanelProps) {
 			<CardContent className="flex-1 overflow-y-auto p-0" ref={scrollRef}>
 				{events.length === 0 ? (
 					<div className="text-muted-foreground flex h-full items-center justify-center p-8 text-center text-sm">
-						No events yet — start a conversation to see the trace stream
+						Events appear here as the review runs — speech, tool calls, and
+						state changes, each timestamped.
 					</div>
 				) : (
 					<div className="space-y-1 p-2">
@@ -175,7 +176,7 @@ export function TracePanel({ className, ...props }: TracePanelProps) {
 									)}
 								>
 									<Icon className="mt-0.5 size-3 shrink-0" />
-									<div className="flex-1 space-y-0.5">
+									<div className="min-w-0 flex-1 space-y-0.5">
 										<div className="flex items-center gap-2">
 											<span className="font-medium">{config.label}</span>
 											{event.durationMs !== undefined && (
