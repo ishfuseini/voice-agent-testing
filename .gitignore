@@ -49,6 +49,7 @@ next-env.d.ts
 # Local agent tooling (duplicate openspec skills for other agents)
 .omp/
 .opencode/
+.commandcode/
 
 # Downloaded ElevenLabs reference docs (re-pullable via CLI/docs)
 docs/ui/
