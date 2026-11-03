@@ -53,8 +53,14 @@ COLOR RULES:
 → Support: #1E3A8A — supporting surfaces only; never use it as text on #131530 (only 1.72:1)
 → Border: rgb(255 255 255 / 0.24) — use for dividers, input borders, and card outlines
   (the 12% white value is decorative only — never rely on it for a control boundary)
-→ Destructive: #F87171
+→ Destructive: #F87171 — also the error status colour
 → Status colors on dark surfaces: success #4ADE80, warning #FBBF24, error #F87171
+→ Info: #93C5FD — instrumentation only: tool calls, latency, and session metrics
+→ Use status colour through its semantic token, never a raw Tailwind hue. The roles are
+  `--success`, `--warning`, `--info`, and `--destructive`, referenced as `text-success`,
+  `bg-warning/10`, and so on, so a role can be remapped in one place.
+→ Never rely on colour alone: pair every status with an icon or a text label
+  (Ready ✓ / Needs Validation ? / Needs Attention !).
 → Do NOT use pure black (#000000) — use #131530 as the darkest value
 
 CONTRAST:

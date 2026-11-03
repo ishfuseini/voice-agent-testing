@@ -28,23 +28,20 @@ const STATE_CONFIGS: Record<CriterionState, StateConfig> = {
 	[CriterionState.Ready]: {
 		label: "Ready",
 		icon: CheckCircle,
-		iconClass: "text-green-500",
-		badgeClass:
-			"bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+		iconClass: "text-success",
+		badgeClass: "bg-success/10 text-success border-success/20",
 	},
 	[CriterionState.NeedsValidation]: {
 		label: "Needs Validation",
 		icon: HelpCircle,
-		iconClass: "text-amber-500",
-		badgeClass:
-			"bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+		iconClass: "text-warning",
+		badgeClass: "bg-warning/10 text-warning border-warning/20",
 	},
 	[CriterionState.NeedsAttention]: {
 		label: "Needs Attention",
 		icon: AlertTriangle,
-		iconClass: "text-red-500",
-		badgeClass:
-			"bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
+		iconClass: "text-destructive",
+		badgeClass: "bg-destructive/10 text-destructive border-destructive/20",
 	},
 	[CriterionState.Unevaluated]: {
 		label: "Pending",
@@ -72,7 +69,11 @@ export function ReadinessPanel({ className, ...props }: ReadinessPanelProps) {
 					<h2 className="font-heading text-xl font-bold tracking-tight">
 						Production Readiness
 					</h2>
-					<div className="flex flex-wrap gap-1.5 font-sans">
+					<div
+						aria-live="polite"
+						className="flex flex-wrap gap-1.5 font-sans"
+						role="status"
+					>
 						<Badge
 							variant="outline"
 							className={cn(

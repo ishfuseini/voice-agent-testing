@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	AlertTriangle,
 	Circle,
 	FlaskConical,
 	Mic,
@@ -83,7 +84,7 @@ function AgentStateBadge({
 	// connected
 	if (isSpeaking) {
 		return (
-			<Badge className="gap-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400">
+			<Badge className="gap-1.5 bg-info/10 text-info">
 				<Volume2 className="size-3" />
 				Speaking
 			</Badge>
@@ -91,7 +92,7 @@ function AgentStateBadge({
 	}
 	if (isListening) {
 		return (
-			<Badge className="gap-1.5 bg-green-500/10 text-green-600 dark:text-green-400">
+			<Badge className="gap-1.5 bg-success/10 text-success">
 				<Mic className="size-3" />
 				Listening
 			</Badge>
@@ -119,6 +120,7 @@ export function ConversationPanel({
 	const transcript = useSessionStore((s) => s.transcript);
 	const sessionStatus = useSessionStore((s) => s.status);
 	const isSample = useSessionStore((s) => s.isSample);
+	const error = useSessionStore((s) => s.error);
 
 	const sampleActive = isSample && sessionStatus === "active";
 	const isConnecting = status === "connecting";
@@ -147,6 +149,25 @@ export function ConversationPanel({
 				</h2>
 			</CardHeader>
 
+			{(error || status === "error") && (
+				<div
+					className="mx-4 flex flex-wrap items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm"
+					role="alert"
+				>
+					<AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+					<div className="min-w-0 flex-1 space-y-0.5">
+						<p className="font-medium">The conversation couldn't start.</p>
+						<p className="text-muted-foreground">
+							{error ??
+								"Something went wrong connecting to the agent. Check your microphone permission and try again."}
+						</p>
+					</div>
+					<Button onClick={startSession} size="sm" variant="outline">
+						Try again
+					</Button>
+				</div>
+			)}
+
 			<CardContent className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-hidden p-4 pt-0 sm:flex-row sm:items-center sm:p-0">
 				<div className="flex w-full shrink-0 items-center justify-center gap-3 sm:w-1/3 sm:flex-col sm:gap-4">
 					<Orb
@@ -154,12 +175,14 @@ export function ConversationPanel({
 						colors={["#B3B8F0", "#F092DD"]}
 						agentState={orbState}
 					/>
-					<AgentStateBadge
-						status={status}
-						isSpeaking={isSpeaking}
-						isListening={isListening}
-						isSample={isSample}
-					/>
+					<div aria-live="polite" role="status">
+						<AgentStateBadge
+							status={status}
+							isSpeaking={isSpeaking}
+							isListening={isListening}
+							isSample={isSample}
+						/>
+					</div>
 				</div>
 				{transcript.length === 0 ? (
 					<div className="flex min-h-40 w-full flex-1 items-center justify-center sm:h-full sm:min-h-0 sm:w-2/3">

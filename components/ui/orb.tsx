@@ -108,6 +108,7 @@ function Scene({
 	const manualOutRef = useRef<number>(manualOutput ?? 0);
 	const curInRef = useRef(0);
 	const curOutRef = useRef(0);
+	const reducedMotionRef = useRef(false);
 
 	useEffect(() => {
 		agentRef.current = agentState;
@@ -116,6 +117,17 @@ function Scene({
 	useEffect(() => {
 		modeRef.current = volumeMode;
 	}, [volumeMode]);
+
+	// Freeze the shader animation when the visitor asks for reduced motion.
+	useEffect(() => {
+		const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const apply = () => {
+			reducedMotionRef.current = query.matches;
+		};
+		apply();
+		query.addEventListener("change", apply);
+		return () => query.removeEventListener("change", apply);
+	}, []);
 
 	useEffect(() => {
 		manualInRef.current = clamp01(
@@ -170,10 +182,16 @@ function Scene({
 			if (live[1]) targetColor2Ref.current.set(live[1]);
 		}
 		const u = mat.uniforms;
-		u.uTime.value += delta * 0.2;
+		if (reducedMotionRef.current) {
+			// Hold a single frame. The state badge carries the information the
+			// motion would otherwise convey.
+			u.uOpacity.value = 1;
+		} else {
+			u.uTime.value += delta * 0.2;
 
-		if (u.uOpacity.value < 1) {
-			u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 2);
+			if (u.uOpacity.value < 1) {
+				u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 2);
+			}
 		}
 
 		let targetIn = 0;
@@ -204,13 +222,19 @@ function Scene({
 			}
 		}
 
-		curInRef.current += (targetIn - curInRef.current) * 0.2;
-		curOutRef.current += (targetOut - curOutRef.current) * 0.2;
+		if (reducedMotionRef.current) {
+			curInRef.current = targetIn;
+			curOutRef.current = targetOut;
+		} else {
+			curInRef.current += (targetIn - curInRef.current) * 0.2;
+			curOutRef.current += (targetOut - curOutRef.current) * 0.2;
 
-		const targetSpeed = 0.05 + (1 - (curOutRef.current - 1) ** 2) * 0.4;
-		animSpeedRef.current += (targetSpeed - animSpeedRef.current) * 0.12;
+			const targetSpeed = 0.05 + (1 - (curOutRef.current - 1) ** 2) * 0.4;
+			animSpeedRef.current += (targetSpeed - animSpeedRef.current) * 0.12;
 
-		u.uAnimation.value += delta * animSpeedRef.current;
+			u.uAnimation.value += delta * animSpeedRef.current;
+		}
+
 		u.uInputVolume.value = curInRef.current;
 		u.uOutputVolume.value = curOutRef.current;
 		u.uColor1.value.lerp(targetColor1Ref.current, 0.08);

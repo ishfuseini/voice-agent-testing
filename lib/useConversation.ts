@@ -68,6 +68,7 @@ export function useReadinessConversation() {
 				});
 			},
 			onError: (message) => {
+				useSessionStore.getState().setError(message);
 				emit({
 					type: "tool_failure",
 					data: { error: message },
