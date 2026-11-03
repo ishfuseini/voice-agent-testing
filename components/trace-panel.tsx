@@ -147,9 +147,9 @@ export function TracePanel({ className, ...props }: TracePanelProps) {
 		>
 			<CardHeader>
 				<div className="flex items-center justify-between">
-					<div className="font-heading text-lg font-medium underline underline-offset-8">
+					<h2 className="font-heading text-xl font-bold tracking-tight">
 						Trace
-					</div>
+					</h2>
 					<div className="text-muted-foreground text-xs tabular-nums">
 						{events.length} events
 					</div>

@@ -26,21 +26,21 @@ function MetricBadge({
 	iconClass: string;
 }) {
 	return (
-		<div className="flex items-center gap-2">
+		<div className="flex min-w-0 flex-col items-start gap-1.5">
 			<div
 				className={cn(
-					"flex items-center gap-2 rounded-md border px-3 py-1.5",
+					"flex items-center gap-2 rounded-md border px-2.5 py-1.5",
 					iconClass,
 				)}
 			>
-				<div className="flex size-6 items-center justify-center">
-					<Icon className="size-4" />
-				</div>
+				<Icon className="size-4" aria-hidden="true" />
 				<span className="font-sans text-sm font-medium tabular-nums">
 					{value}
 				</span>
 			</div>
-			<span className="font-sans text-sm font-medium">{label}</span>
+			<span className="font-sans text-xs leading-tight text-muted-foreground sm:text-sm">
+				{label}
+			</span>
 		</div>
 	);
 }
@@ -67,7 +67,7 @@ export function SessionMetricsPanel({
 
 	return (
 		<Card className={cn("flex flex-col ring-primary/25", className)} {...props}>
-			<CardContent className="flex flex-wrap items-center justify-center gap-6 p-1.5">
+			<CardContent className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
 				<MetricBadge
 					icon={Clock}
 					label="Latency (Median)"
