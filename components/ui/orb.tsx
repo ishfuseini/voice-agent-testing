@@ -24,7 +24,7 @@ type OrbProps = {
 };
 
 export function Orb({
-	colors = ["#CADCFC", "#A0B9D1"],
+	colors = ["#B3B8F0", "#F092DD"],
 	colorsRef,
 	resizeDebounce = 100,
 	seed,
@@ -478,14 +478,14 @@ void main() {
     float totalRingAlpha = max(ringAlpha1, ringAlpha2);
     
     // Apply screen blend mode for combined rings
-    vec3 ringColor = vec3(0.0, 1.0, 0.612); // #00FF9C
+    vec3 ringColor = vec3(0.941, 0.573, 0.867); // #F092DD
     color.rgb = 1.0 - (1.0 - color.rgb) * (1.0 - ringColor * totalRingAlpha);
 
     // Define colours to ramp against greyscale (could increase the amount of colours in the ramp)
     vec3 color1 = vec3(0.0, 0.0, 0.0); // Black
     vec3 color2 = uColor1; // Darker Color
     vec3 color3 = uColor2; // Lighter Color
-    vec3 color4 = vec3(0.0, 1.0, 0.612); // #00FF9C
+    vec3 color4 = vec3(0.941, 0.573, 0.867); // #F092DD
 
     // Convert grayscale color to the color ramp
     float luminance = mix(color.r, 1.0 - color.r, uInverted);
