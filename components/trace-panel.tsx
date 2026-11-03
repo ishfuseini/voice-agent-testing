@@ -24,69 +24,91 @@ interface EventConfig {
 	containerClass: string;
 }
 
+// Semantic severity roles, shared with the assessment state ladder, so a trace
+// event never introduces a hue the rest of the product does not use.
+const NEUTRAL_CLASS = "border-l-muted-foreground/30";
+const INFO_CLASS = "border-l-info bg-info/5 text-info";
+const SUCCESS_CLASS = "border-l-success bg-success/5 text-success";
+const WARNING_CLASS = "border-l-warning bg-warning/5 text-warning";
+const DANGER_CLASS = "border-l-destructive bg-destructive/5 text-destructive";
+
+const ASSESSMENT_CHANGE_CONFIG: EventConfig = {
+	icon: ClipboardCheck,
+	label: "Assessment Change",
+	containerClass: INFO_CLASS,
+};
+
 const EVENT_CONFIGS: Partial<Record<EventType, EventConfig>> = {
 	conversation_start: {
 		icon: Phone,
 		label: "Conversation Start",
-		containerClass: "border-l-muted-foreground/30",
+		containerClass: NEUTRAL_CLASS,
 	},
 	conversation_end: {
 		icon: PhoneOff,
 		label: "Conversation End",
-		containerClass: "border-l-muted-foreground/30",
+		containerClass: NEUTRAL_CLASS,
 	},
 	speech_detected: {
 		icon: MessageSquare,
 		label: "User Speech",
-		containerClass: "border-l-muted-foreground/30",
+		containerClass: NEUTRAL_CLASS,
 	},
 	agent_response: {
 		icon: MessageSquare,
 		label: "Agent Response",
-		containerClass: "border-l-muted-foreground/30",
+		containerClass: NEUTRAL_CLASS,
 	},
 	tool_call: {
 		icon: Wrench,
 		label: "Tool Call",
-		containerClass:
-			"border-l-blue-500 bg-blue-500/5 text-blue-600 dark:text-blue-400",
+		containerClass: INFO_CLASS,
 	},
 	tool_result: {
 		icon: Wrench,
 		label: "Tool Result",
-		containerClass:
-			"border-l-blue-500 bg-blue-500/5 text-blue-600 dark:text-blue-400",
+		containerClass: INFO_CLASS,
 	},
-	assessment_change: {
-		icon: ClipboardCheck,
-		label: "Assessment Change",
-		containerClass:
-			"border-l-purple-500 bg-purple-500/5 text-purple-600 dark:text-purple-400",
-	},
+	assessment_change: ASSESSMENT_CHANGE_CONFIG,
 	latency: {
 		icon: Clock,
 		label: "Latency",
-		containerClass:
-			"border-l-amber-500 bg-amber-500/5 text-amber-600 dark:text-amber-400",
+		containerClass: INFO_CLASS,
 	},
 };
 
 const TOOL_FAILURE_CONFIG: EventConfig = {
 	icon: AlertOctagon,
 	label: "Tool Failure",
-	containerClass:
-		"border-l-red-500 bg-red-500/5 text-red-600 dark:text-red-400",
+	containerClass: DANGER_CLASS,
+};
+
+const ASSESSMENT_STATUS_CLASSES: Record<string, string> = {
+	ready: SUCCESS_CLASS,
+	needs_validation: WARNING_CLASS,
+	needs_attention: DANGER_CLASS,
 };
 
 const DEFAULT_CONFIG: EventConfig = {
 	icon: Activity,
 	label: "",
-	containerClass: "border-l-muted-foreground/30",
+	containerClass: NEUTRAL_CLASS,
 };
 
 function getEventConfig(event: TraceEvent): EventConfig {
 	if (event.type === "tool_failure") {
 		return TOOL_FAILURE_CONFIG;
+	}
+	// A criterion change takes the colour of the state it produced.
+	if (event.type === "assessment_change") {
+		const status = event.data?.status;
+		const statusClass =
+			typeof status === "string"
+				? ASSESSMENT_STATUS_CLASSES[status]
+				: undefined;
+		if (statusClass) {
+			return { ...ASSESSMENT_CHANGE_CONFIG, containerClass: statusClass };
+		}
 	}
 	return (
 		EVENT_CONFIGS[event.type] ?? {

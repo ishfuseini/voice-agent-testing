@@ -26,7 +26,7 @@ export default function Home() {
 							</h1>
 						</div>
 					</div>
-					<p className="max-w-2xl font-sans text-sm leading-relaxed text-muted-foreground sm:ml-auto sm:text-right">
+					<p className="max-w-2xl font-sans text-base leading-relaxed text-muted-foreground sm:ml-auto sm:text-right">
 						A conversational production-readiness review for voice-agent
 						deployments.
 					</p>
