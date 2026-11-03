@@ -17,20 +17,22 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Environment
+The app runs a scripted **sample session** with no configuration — press **Run sample session** to watch a full review end to end. It drives the same stores and tool handlers a live conversation does, so the transcript, metrics, trace, assessment, and report are all real; only the turns are scripted, and the session is labelled as a sample throughout.
 
-Create `.env.local`:
+### Environment (to review your own deployment)
+
+To hold a real conversation, create `.env.local`:
 
 ```
 NEXT_PUBLIC_ELEVENLABS_AGENT_ID=your_agent_id
 ```
 
-The agent must be configured on the [ElevenLabs dashboard](https://elevenlabs.io) with the four client tools listed below.
+The agent must be configured on the [ElevenLabs dashboard](https://elevenlabs.io) with the four client tools listed below. With an agent configured, the conversation panel offers **Start Conversation** alongside the sample session.
 
 ### Other Commands
 
 ```bash
-pnpm test      # Run vitest (47 tests)
+pnpm test      # Run vitest (50 tests)
 pnpm build     # Production build
 pnpm lint      # Biome check
 ```
@@ -39,26 +41,24 @@ pnpm lint      # Biome check
 
 ## How It Works
 
-A single-screen Next.js app with four panels, all visible simultaneously:
+A single-screen Next.js app with a **primary stage** and an **evidence rail**. Below `xl`, the two columns stack into one.
 
-```
-┌─────────────────────────────────────────────────────────┐
-│  Header: Avatar · Title · "An ishlabs Production"       │
-├──────────────────────┬──────────────────────────────────┤
-│                      │  Session Metrics (p50/p95)       │
-│  Conversation Panel  ├───────────────┬──────────────────┤
-│  (Orb + Transcript)  │  Readiness    │  Trace           │
-│                      │  Panel        │  Panel            │
-│                      ├───────────────┴──────────────────┤
-│                      │  Readiness Report (+ export)      │
-└──────────────────────┴──────────────────────────────────┘
+```text
+Header: Avatar · Title · "An ishlabs production"
+├─ Primary stage ── Conversation (orb + live transcript)
+│                   ↓ hands over when the review completes
+│                   Readiness Report (summary · Copy · Export)
+└─ Evidence rail ── Session Metrics (p50/p95 latency, tool metrics)
+                    Production Readiness (3 pillars · 9 criteria)
+                    Trace (timestamped event stream)
 ```
 
-- **Conversation** — ElevenLabs Orb (animated, colored) + live transcript. Start/End buttons.
+- **Primary stage** — shows the conversation while the review runs, then hands the column to the readiness report when it completes, so the outcome gets the largest surface on the page. A **Readiness report / Conversation** toggle keeps the transcript and the session controls one click away.
+- **Conversation** — ElevenLabs Orb (animated, colored) + live transcript. Start/End buttons, plus **Run sample session**.
 - **Production Readiness** — Three pillars, nine criteria, each with a status badge (Ready / Needs Validation / Needs Attention). Updates live as the agent calls tools.
 - **Session Metrics** — p50/p95 end-of-speech-to-first-audio latency, tool duration p50, tool failure count. Updates live during conversation.
 - **Trace** — Timestamped event stream: conversation start/end, speech detected, agent response, tool calls, failures, state changes, latency measurements.
-- **Readiness Report** — Markdown report grouped by state with evidence and next steps. Export button appears when the assessment is complete.
+- **Readiness Report** — Markdown report grouped by state with evidence and next steps, a `Review complete · N Ready · N Needs Validation · N Needs Attention` summary, and Copy / Export Markdown actions.
 
 ---
 
@@ -84,7 +84,7 @@ Four Zustand stores, each with a single responsibility:
 | Metrics | `stores/metrics.ts` | Latency samples, tool durations, failure count |
 | Session | `stores/session.ts` | Conversation lifecycle (idle → active → ended), transcript |
 
-**Tool handlers are the only writers.** UI components read from stores and re-render on mutation. This boundary is deliberate — it means all state changes are traceable to a tool call.
+**Writes come from the integration layer, never from UI components.** Tool handlers, the ElevenLabs SDK callbacks, and the scripted sample session are the only writers; components read from stores and re-render on mutation. This boundary is deliberate — it keeps every state change traceable to a tool call or a conversation event.
 
 ### ElevenLabs Integration
 
@@ -97,6 +97,12 @@ The `useReadinessConversation()` hook in `lib/useConversation.ts` wraps the Elev
 - **Session lifecycle** managed through SDK callbacks (onConnect/onDisconnect)
 
 The ConversationProvider wraps the app in `components/providers.tsx`.
+
+### Sample Session
+
+`lib/useSampleSession.ts` plays a scripted review through the same stores and tool handlers a live conversation uses, so the whole interface can be demonstrated with no configuration. It mirrors the SDK hook's callbacks — transcript entries, trace events, and first-audio latency — and calls the real tool handlers for every criterion, including the CRM timeout.
+
+The session store records `isSample`, so a scripted run stays labelled throughout: the conversation shows a **Sample session** badge, the report carries a **Sample** badge, and its export is named `readiness-report-sample-*.md`. The run is owned by `components/session-stage.tsx`, so it keeps playing even while the report view is shown.
 
 ### Tool Design
 
@@ -136,7 +142,7 @@ Each criterion has one of three states: **Ready** ✓, **Needs Validation** ?, *
 
 `lib/report.ts` is a pure function: assessment state in, Markdown string out. Grouped by state (Ready → Needs Validation → Needs Attention), each finding includes the criterion name, evidence recorded during conversation, and a recommended next step.
 
-The report renders in-app when `complete_assessment` is called. An export button downloads the Markdown file.
+The report renders in-app when `complete_assessment` is called: the primary stage hands over to it, showing a state summary alongside **Copy** and **Export Markdown**. `countAssessment` is a pure helper in `stores/assessment.ts`, so the summary stays reactive without duplicating the counting logic.
 
 ### Observability
 
@@ -198,6 +204,8 @@ The app never computes or displays a score, percentage, rating, or grade. The as
 
 Click **Start Conversation**. The orb animates as the agent speaks.
 
+No agent configured? Press **Run sample session** instead — it plays the same review end to end, so the whole interface can be demonstrated without any setup.
+
 ### 2. Discovery (2 minutes)
 
 The agent introduces itself and begins asking about the first pillar (Latency & Turn-Taking). Answer naturally:
@@ -228,13 +236,13 @@ The agent calls `check_crm_health` to verify a dependency. It times out after 5 
 
 ### 5. Report (30 seconds)
 
-The agent calls `complete_assessment`. The **Readiness Report** panel renders a Markdown report grouped by state:
+The agent calls `complete_assessment`. The primary column hands over to the **Readiness Report** at full height, with the state summary and Copy / Export:
 
 - **READY** — criteria with evidence
 - **NEEDS VALIDATION** — criteria that couldn't be verified
 - **NEEDS ATTENTION** — criteria with issues
 
-Click **Export Markdown** to download the report.
+Click **Copy** or **Export Markdown**, and use the **Conversation** toggle to flip back to the transcript.
 
 > "No composite score. No percentage. Just: what's ready, what needs verification, what needs fixing — with evidence and next steps."
 
@@ -242,7 +250,8 @@ Click **Export Markdown** to download the report.
 
 - `lib/tools.ts` — the four tool handlers, all client-side
 - `lib/useConversation.ts` — the ElevenLabs hook with tools, trace, and metrics wired
-- `stores/` — four Zustand stores, tool handlers as the only writers
+- `lib/useSampleSession.ts` — the scripted sample session
+- `stores/` — four Zustand stores; the integration layer is the only writer
 - `lib/report.ts` — pure function: state in, Markdown out
 - `agent/prompt.md` — the agent's system prompt, version-controlled
 
@@ -258,11 +267,12 @@ Click **Export Markdown** to download the report.
 │   ├── layout.tsx             # Fonts, favicon, metadata
 │   └── page.tsx               # Single-screen layout
 ├── components/
-│   ├── conversation-panel.tsx # Orb + transcript + start/end
+│   ├── session-stage.tsx      # Primary stage: conversation ⇄ report
+│   ├── conversation-panel.tsx # Orb + transcript + start/end + sample
 │   ├── readiness-panel.tsx    # Pillars + criteria + status badges
 │   ├── session-metrics.tsx     # p50/p95 latency, tool metrics
 │   ├── trace-panel.tsx        # Timestamped event stream
-│   ├── readiness-report.tsx  # Markdown report + export
+│   ├── readiness-report.tsx  # Markdown report + summary, Copy/Export
 │   ├── providers.tsx          # ConversationProvider wrapper
 │   └── ui/                    # shadcn/ui + ElevenLabs UI (orb, conversation, message)
 ├── lib/
@@ -271,19 +281,22 @@ Click **Export Markdown** to download the report.
 │   ├── report.ts             # Markdown report generation
 │   ├── tools.ts              # Four client-side tool handlers
 │   ├── types.ts              # Assessment, trace, metric types
-│   └── useConversation.ts    # ElevenLabs hook wrapper
+│   ├── useConversation.ts    # ElevenLabs hook wrapper
+│   └── useSampleSession.ts   # Scripted, zero-config sample session
 ├── stores/
-│   ├── assessment.ts          # Criteria map + status mutations
+│   ├── assessment.ts          # Criteria map + status mutations + counts
 │   ├── metrics.ts             # Latency samples + tool durations
-│   ├── session.ts             # Lifecycle + transcript
+│   ├── session.ts             # Lifecycle + transcript + sample flag
 │   └── trace.ts               # Event list + emit() interface
 ├── __tests__/
 │   ├── assessment.test.ts     # State transitions, no composite score
 │   ├── metrics.test.ts        # p50/p95 edge cases
 │   ├── report.test.ts         # State groupings, evidence, no score
-│   └── e2e-flow.test.ts       # Full session simulation (8 tests)
-└── docs/
-    └── DESIGN.md              # Design system spec
+│   ├── e2e-flow.test.ts       # Full session simulation (8 tests)
+│   └── sample-session.test.ts # Scripted session drives the real stores
+├── docs/
+│   └── DESIGN.md              # Design system spec
+└── PRODUCT.md                 # Product context (users, positioning, constraints)
 ```
 
 ---
