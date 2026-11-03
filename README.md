@@ -295,7 +295,8 @@ Click **Copy** or **Export Markdown**, and use the **Conversation** toggle to fl
 │   ├── e2e-flow.test.ts       # Full session simulation (8 tests)
 │   └── sample-session.test.ts # Scripted session drives the real stores
 ├── docs/
-│   └── DESIGN.md              # Design system spec
+│   ├── DESIGN.md              # Design system spec
+│   └── REVIEW-PROGRESS-BRIEF.md  # Planned: mid-review progress + evidence
 └── PRODUCT.md                 # Product context (users, positioning, constraints)
 ```
 
