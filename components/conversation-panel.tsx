@@ -162,7 +162,7 @@ export function ConversationPanel({
 			<CardFooter className="justify-center">
 				{isIdle && (
 					<Button
-						className="w-full border-primary bg-transparent text-primary hover:bg-transparent hover:border-primary"
+						className="w-full border-primary bg-transparent text-primary hover:border-primary hover:bg-transparent dark:border-primary dark:bg-transparent dark:hover:border-primary dark:hover:bg-transparent"
 						variant="outline"
 						disabled={!agentId || isConnecting}
 						onClick={startSession}
